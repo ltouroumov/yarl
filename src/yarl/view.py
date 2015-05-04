@@ -12,9 +12,11 @@ class TileMap(sf.Drawable):
         self.vertices.resize(self.size.x * self.size.y * 4)
         self.vertices.primitive_type = sf.PrimitiveType.QUADS
 
-        p1 = center - (self.size / 2)
-        p2 = center + (self.size / 2)
-        for pos in [sf.Vector2(x, y) for (x, y) in product(range(p1.y, p2.y), range(p1.x, p2.x))]:
+        p1 = center - self.size
+        p2 = center + self.size
+        print("p1=", p1, "p2=", p2)
+        points = [sf.Vector2(x, y) for (x, y) in product(range(p1.x, p2.x), range(p1.y, p2.y))]
+        for pos in points:
             tile = floor.chunks.get_tile(pos)
             print("tile=", tile)
 

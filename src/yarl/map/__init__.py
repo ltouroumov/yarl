@@ -7,17 +7,17 @@ import os.path as path
 
 
 class World:
-    def __init__(self, path, name):
+    def __init__(self, wpath, name):
         """
         Creates an empty world
         """
-        self.path = path
+        self.path = wpath
         self.name = name
         self.size = sf.Vector2(16, 16)
         self.floors = dict()
 
     def __repr__(self):
-        return "World(%s, size: %i x %i)" % (self.name, self.size.x, self.size.y)
+        return "World(%s, size: %i by %i)" % (self.name, self.size.x, self.size.y)
 
     def __getstate__(self):
         return {'name': self.name,
@@ -28,6 +28,9 @@ class World:
         self.name = state['name']
         self.size = load_vec2(state['size'])
         self.floors = state['floors']
+        # Re-Set world references when loading
+        for key, floor in self.floors.items():
+            floor.world = self
 
     @staticmethod
     def load(base_path):
@@ -36,7 +39,9 @@ class World:
         """
         data_path = path.join(base_path, 'world.dat')
         with open(data_path, 'rb') as f:
-            return pickle.load(f)
+            world = pickle.load(f)
+            world.path = base_path
+            return world
 
     def save(self):
         """
@@ -54,23 +59,24 @@ class World:
         Get a dungeon floor
         """
         if name not in self.floors:
-            self.floors[name] = Floor(name, self.size)
+            self.floors[name] = Floor(name, self.size, self)
         return self.floors[name]
 
 
 class Floor:
-    def __init__(self, name, size):
+    def __init__(self, name, size, world):
         """
         Creates an unpopulated dungeon floor
         """
         self.name = name
         self.size = size
+        self.world = world
         self.loaded = False
         self.loader = None
         self.chunks = None
 
     def __repr__(self):
-        return "Floor(%s, size: %i x %i)" % (self.name, self.size.x, self.size.y)
+        return "Floor(%s, size: %i by %i)" % (self.name, self.size.x, self.size.y)
 
     def __getstate__(self):
         return {'name': self.name,
@@ -97,10 +103,10 @@ class Floor:
         self.chunks.set_tile(pos, tile)
 
     def path(self):
-        return make_slug(self.name)
+        return path.join(self.world.path, make_slug(self.name))
 
     def save(self):
-        pass
+        self.loader.save()
 
     def load(self):
         pass

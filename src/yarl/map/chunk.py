@@ -1,8 +1,8 @@
 from sfml import sf
-from yarl.util import cantor_pairing
+from yarl.util import cantor_pairing, dump_vec2, load_vec2
 from yarl.tile import Tile
-from os.path import join, exists
-from os import makedirs
+import os.path as op
+import os
 import pickle as pi
 import numpy as np
 
@@ -22,17 +22,27 @@ class ChunkLoader:
 
     def save(self):
         floor_path = self.floor.path()
-        if not exists(floor_path):
-            makedirs(floor_path)
-        for hsh, chunk in self.pool:
-            chunk_path = join(floor_path, "%s.dat" % hsh)
+        if not op.exists(floor_path):
+            os.makedirs(floor_path)
+        for hsh, chunk in self.pool.items():
+            chunk_path = self.chunk_path(hsh=hsh)
             chunk.write_to(chunk_path)
 
     def purge(self):
         pass
 
+    def chunk_path(self, hsh=None, cpos=None):
+        if hsh is None:
+            hsh = cantor_pairing(cpos.x, cpos.y)
+
+        return op.join(self.floor.path(), "%04x.dat" % hsh)
+
     def load_chunk(self, cpos):
-        chunk = Chunk(cpos)
+        path = self.chunk_path(cpos=cpos)
+        if op.exists(path):
+            chunk = Chunk.read_from(path)
+        else:
+            chunk = Chunk(cpos)
         return chunk
 
 
@@ -116,6 +126,14 @@ class Chunk:
         self.pos = pos
         self.tiles = np.ndarray(shape=(self.size, self.size), dtype=Tile)
 
+    def __getstate__(self):
+        return {'pos': dump_vec2(self.pos),
+                'tiles': self.tiles}
+
+    def __setstate__(self, state):
+        self.pos = load_vec2(state['pos'])
+        self.tiles = state['tiles']
+
     def __repr__(self):
         return "Chunk{ pos=(%i, %i) }" % (self.pos.x, self.pos.y)
 
@@ -123,10 +141,15 @@ class Chunk:
         with open(path, 'wb+') as f:
             pi.dump(self, f)
 
+    @staticmethod
+    def read_from(path):
+        with open(path, 'rb') as f:
+            return pi.load(f)
+
     def get_tile(self, pos):
-        rpos = pos - (self.pos * self.size)
+        rpos = pos - (self.pos * Chunk.size)
         return self.tiles[rpos.x, rpos.y]
 
     def set_tile(self, pos, tile):
-        rpos = pos - (self.pos * self.size)
+        rpos = pos - (self.pos * Chunk.size)
         self.tiles[rpos.x, rpos.y] = tile

@@ -14,7 +14,12 @@ args_parser.add_argument('--rebuild', dest='rebuild', action='store_true', defau
 args = args_parser.parse_args()
 
 print("Loading World ...")
-world = World.load(args.world)
+try:
+    world = World.load(args.world)
+except FileNotFoundError as e:
+    print("World not found! Creating")
+    world = World(args.world, args.world)
+
 floor = world.floor("Ground")
 
 if args.rebuild:
@@ -28,13 +33,17 @@ if args.rebuild:
     for pos in all_pos:
         floor.set_tile(pos, BlockTile())
 
+    print("Saving ...")
+    floor.save()
+    world.save()
     print("Done!")
 
 # create the main window
 width, height = map(int, args.video_mode.split(':'))
 window = sf.RenderWindow(sf.VideoMode(width, height), "pySFML Window")
 
-map = TileMap(sf.Vector2(9, 9))
+tile_map = TileMap(sf.Vector2(9, 9))
+tile_map.update(floor, sf.Vector2(0, 0))
 
 # start the game loop
 while window.is_open:
@@ -48,5 +57,5 @@ while window.is_open:
             window.close()
 
     window.clear()  # clear screen
-
+    window.draw(tile_map)
     window.display()  # update the window

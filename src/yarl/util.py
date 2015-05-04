@@ -17,7 +17,7 @@ def load_vec2(data):
 
 
 def make_slug(raw_str):
-    slug = raw_str.encode('ascii', 'ignore').lower()
+    slug = raw_str.lower()
     slug = re.sub(r'[^a-z0-9]+', '-', slug)
     slug = re.sub(r'[-]+', '-', slug)
     return slug
