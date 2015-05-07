@@ -1,13 +1,11 @@
-__author__ = 'jdavid'
+from yarl.block import VoidBlock
 
 
 class Tile:
-    pass
+    def __init__(self, block=None):
+        if block is None:
+            self.block = VoidBlock()
+        else:
+            self.block = block
 
-
-class BlockTile(Tile):
-    pass
-
-
-class EntityTile(Tile):
-    pass
+        self.meta = {}

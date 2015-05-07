@@ -21,3 +21,30 @@ def make_slug(raw_str):
     slug = re.sub(r'[^a-z0-9]+', '-', slug)
     slug = re.sub(r'[-]+', '-', slug)
     return slug
+
+
+def make_less(less):
+
+    class Less:
+        def __init__(self, obj):
+            self.obj = obj
+
+        def __lt__(self, other):
+            return not less(self.obj, other)
+
+        def __gt__(self, other):
+            return less(self.obj, other)
+
+        def __eq__(self, other):
+            return False
+
+        def __ne__(self, other):
+            return True
+
+        def __le__(self, other):
+            return self.__lt__(other)
+
+        def __ge__(self, other):
+            return self.__ge__(other)
+
+    return Less

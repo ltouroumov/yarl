@@ -148,6 +148,10 @@ class Chunk:
 
     def get_tile(self, pos):
         rpos = pos - (self.pos * Chunk.size)
+
+        if self.tiles[rpos.x, rpos.y] is None:
+            self.tiles[rpos.x, rpos.y] = Tile()
+
         return self.tiles[rpos.x, rpos.y]
 
     def set_tile(self, pos, tile):

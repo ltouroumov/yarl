@@ -1,76 +1,59 @@
-import pickle
 from yarl.map.chunk import ChunkLoader, ChunkTree
-from yarl.util import dump_vec2, load_vec2, make_slug
+from yarl.util import dump_vec2, load_vec2
 from sfml import sf
-import os
-import os.path as path
 
 
 class World:
-    def __init__(self, wpath, name):
+    def __init__(self, name, save):
         """
         Creates an empty world
         """
-        self.path = wpath
+        self.save = save
         self.name = name
         self.size = sf.Vector2(16, 16)
-        self.floors = dict()
+        self.regions = dict()
 
     def __repr__(self):
         return "World(%s, size: %i by %i)" % (self.name, self.size.x, self.size.y)
 
-    def __getstate__(self):
-        return {'name': self.name,
-                'size': dump_vec2(self.size),
-                'floors': self.floors}
-
-    def __setstate__(self, state):
-        self.name = state['name']
-        self.size = load_vec2(state['size'])
-        self.floors = state['floors']
-        # Re-Set world references when loading
-        for key, floor in self.floors.items():
-            floor.world = self
-
-    @staticmethod
-    def load(base_path):
-        """
-        Loads a world from disk
-        """
-        data_path = path.join(base_path, 'world.dat')
-        with open(data_path, 'rb') as f:
-            world = pickle.load(f)
-            world.path = base_path
-            return world
-
-    def save(self):
-        """
-        Save world metadata to disk (NOTE: Chunks are not saved)
-        """
-        data_path = path.join(self.path, 'world.dat')
-        if not path.exists(self.path):
-            os.makedirs(self.path)
-
-        with open(data_path, 'wb+') as f:
-            pickle.dump(self, f)
-
-    def floor(self, name):
+    def region(self, name):
         """
         Get a dungeon floor
         """
-        if name not in self.floors:
-            self.floors[name] = Floor(name, self.size, self)
-        return self.floors[name]
+        if name not in self.regions:
+            self.regions[name] = Region(self.save, name, self.size)
+
+        return self.regions[name]
 
 
-class Floor:
-    def __init__(self, name, size, world):
+class Region:
+    """
+    Create an unpopulated region
+    """
+    def __init__(self, save, name, size):
+        self.id = None
+        self.name = name
+        self.save = save
+        self.size = size
+        self.levels = dict()
+
+    def __repr__(self):
+        return "Region(%s, %s levels)" % (self.name, len(self.levels))
+
+    def level(self, name):
+        if name not in self.levels:
+            self.levels[name] = Level(name, self.size, self.save)
+
+
+class Level:
+    def __init__(self, name, size, save):
         """
         Creates an unpopulated dungeon floor
         """
+        self.id = None
         self.name = name
         self.size = size
-        self.world = world
+        self.save = save
         self.loaded = False
         self.loader = None
         self.chunks = None
@@ -102,8 +85,9 @@ class Floor:
         self.init()
         self.chunks.set_tile(pos, tile)
 
-    def path(self):
-        return path.join(self.world.path, make_slug(self.name))
+    def set_block(self, pos, block):
+        self.init()
+        self.chunks.get_tile(pos).set_block(block)
 
     def save(self):
         self.loader.save()
