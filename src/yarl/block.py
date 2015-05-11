@@ -1,12 +1,15 @@
-__author__ = 'jdavid'
+from yarl.util import Singleton
 
 
+@Singleton
 class BlockRegistry:
     def __init__(self):
         self.blocks = dict()
+        self.next_key = 1
 
     def add(self, klass):
-        self.blocks[klass.id] = klass()
+        self.blocks[klass.name] = klass(self.next_key)
+        self.next_key += 1
 
     def get(self, name):
         if name in self.blocks:
@@ -16,25 +19,17 @@ class BlockRegistry:
 
 
 class Block:
-    pass
+    def __init__(self, key):
+        self.key = key
 
 
 class VoidBlock(Block):
-    id = "block.void"
-
-    def __init__(self):
-        pass
+    name = "block.void"
 
 
 class FloorBlock(Block):
-    id = "block.floor"
-
-    def __init__(self):
-        pass
+    name = "block.floor"
 
 
 class WallBlock(Block):
-    id = "block.wall"
-
-    def __init__(self):
-        pass
+    name = "block.wall"

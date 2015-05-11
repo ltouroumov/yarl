@@ -1,7 +1,6 @@
 import itertools as it
 import argparse
 from sfml import sf
-from yarl.map import World
 from yarl.map.chunk import Chunk
 from yarl.block import *
 from yarl.view import TileMap
@@ -14,14 +13,14 @@ args_parser.add_argument('--rebuild', dest='rebuild', default=None)
 args = args_parser.parse_args()
 
 print("Loading Blocks ...")
-registry = BlockRegistry()
+registry = BlockRegistry.instance()
 registry.add(VoidBlock)
 registry.add(FloorBlock)
 registry.add(WallBlock)
 
 print("Loading World ...")
 
-save_file = SaveFile(args.world)
+save_file = SaveFile(args.world, 0)
 save_file.open()
 
 if args.rebuild:
@@ -45,7 +44,7 @@ if args.rebuild is not None:
         level.set_block(pos, registry.get("block.floor"))
 
     print("Saving ...")
-    world.save()
+    save_file.save()
     print("Done!")
 
 # create the main window

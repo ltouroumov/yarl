@@ -1,15 +1,14 @@
 from sfml import sf
-from yarl.util import cantor_pairing, dump_vec2, load_vec2
+from yarl.util import cantor_pairing
 from yarl.tile import Tile
-import os.path as op
-import os
-import pickle as pi
+from yarl.schema import ChunkTable
 import numpy as np
 
 
 class ChunkLoader:
-    def __init__(self, floor):
-        self.floor = floor
+    def __init__(self, level_id, save_file):
+        self.level = level_id
+        self.save_file = save_file
         self.pool = dict()
 
     def get(self, cpos):
@@ -21,28 +20,22 @@ class ChunkLoader:
         return self.pool[hsh]
 
     def save(self):
-        floor_path = self.floor.path()
-        if not op.exists(floor_path):
-            os.makedirs(floor_path)
         for hsh, chunk in self.pool.items():
-            chunk_path = self.chunk_path(hsh=hsh)
-            chunk.write_to(chunk_path)
+            self.save_file.upsert(ChunkTable, chunk)
 
     def purge(self):
         pass
 
-    def chunk_path(self, hsh=None, cpos=None):
-        if hsh is None:
-            hsh = cantor_pairing(cpos.x, cpos.y)
-
-        return op.join(self.floor.path(), "%04x.dat" % hsh)
-
     def load_chunk(self, cpos):
-        path = self.chunk_path(cpos=cpos)
-        if op.exists(path):
-            chunk = Chunk.read_from(path)
-        else:
-            chunk = Chunk(cpos)
+        chunk = self.save_file.select(ChunkTable,
+                                      pos=cpos,
+                                      level_id=self.level)
+
+        if chunk is None:
+            chunk = Chunk(level_id=self.level,
+                          pos=cpos)
+            self.save_file.upsert(ChunkTable, chunk)
+
         return chunk
 
 
@@ -114,37 +107,52 @@ class ChunkTree:
             cell_origin = sf.Vector2(self.origin.x + (-1 if dist.x < 0 else 1) * cell_size.x // 2,
                                      self.origin.y + (-1 if dist.y < 0 else 1) * cell_size.y // 2)
 
-        cell = ChunkTree(cell_origin, cell_size, self.loader, is_leaf)
+        cell = ChunkTree(origin=cell_origin,
+                         size=cell_size,
+                         loader=self.loader,
+                         is_leaf=is_leaf)
         return cell
+
+
+class TileMatrix(np.ndarray):
+    def __new__(cls, size):
+        return super(TileMatrix, cls).__new__(cls, shape=(size, size), dtype=Tile)
+
+    def pack(self):
+        shape = "%s:%s" % self.shape
+
+        def pack_tile(tile):
+            if tile is None:
+                return "0:0"
+            else:
+                return "%s:%s" % (tile.block.key, tile.meta)
+
+        def pack_row(row):
+            prow = map(pack_tile, row)
+            return str.join(';', prow)
+
+        items = str.join('\n', map(pack_row, self))
+
+        return (shape + '\n' + items).encode("ascii")
+
+    @staticmethod
+    def unpack(packed):
+        shape, *tiles = map(lambda s: s.split(':'), packed.split(';'))
+        return TileMatrix(shape)
 
 
 class Chunk:
     rank = 4
-    size = 2**rank
+    size = 2 ** rank
 
-    def __init__(self, pos):
+    def __init__(self, level_id, pos):
+        self.id = None
+        self.level_id = level_id
         self.pos = pos
-        self.tiles = np.ndarray(shape=(self.size, self.size), dtype=Tile)
-
-    def __getstate__(self):
-        return {'pos': dump_vec2(self.pos),
-                'tiles': self.tiles}
-
-    def __setstate__(self, state):
-        self.pos = load_vec2(state['pos'])
-        self.tiles = state['tiles']
+        self.tiles = TileMatrix(self.size)
 
     def __repr__(self):
         return "Chunk{ pos=(%i, %i) }" % (self.pos.x, self.pos.y)
-
-    def write_to(self, path):
-        with open(path, 'wb+') as f:
-            pi.dump(self, f)
-
-    @staticmethod
-    def read_from(path):
-        with open(path, 'rb') as f:
-            return pi.load(f)
 
     def get_tile(self, pos):
         rpos = pos - (self.pos * Chunk.size)
