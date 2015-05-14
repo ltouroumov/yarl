@@ -3,7 +3,7 @@ import argparse
 from sfml import sf
 from yarl.map.chunk import Chunk
 from yarl.block import *
-from yarl.view import TileMap
+from yarl.view import TileMap, TileAtlas
 from yarl.save import SaveFile
 
 args_parser = argparse.ArgumentParser()
@@ -17,6 +17,10 @@ registry = BlockRegistry.instance()
 registry.add(VoidBlock)
 registry.add(FloorBlock)
 registry.add(WallBlock)
+
+print("Loading Textures ...")
+tile_atlas = TileAtlas()
+tile_atlas.build(registry)
 
 print("Loading World ...")
 

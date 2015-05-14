@@ -21,15 +21,31 @@ class BlockRegistry:
 class Block:
     def __init__(self, key):
         self.key = key
+        self.icons = dict()
+
+    def register_icons(self, registry):
+        pass
+
+    def render(self, meta):
+        raise NotImplemented("Method 'render' must be implemented")
 
 
 class VoidBlock(Block):
     name = "block.void"
 
+    def render(self, meta):
+        pass
+
 
 class FloorBlock(Block):
     name = "block.floor"
 
+    def render(self, meta):
+        pass
+
 
 class WallBlock(Block):
     name = "block.wall"
+
+    def render(self, meta):
+        pass

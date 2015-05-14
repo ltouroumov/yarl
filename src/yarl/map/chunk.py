@@ -1,4 +1,5 @@
 from sfml import sf
+from yarl.block import BlockRegistry
 from yarl.util import cantor_pairing
 from yarl.tile import Tile
 from yarl.schema import ChunkTable
@@ -137,8 +138,18 @@ class TileMatrix(np.ndarray):
 
     @staticmethod
     def unpack(packed):
-        shape, *tiles = map(lambda s: s.split(':'), packed.split(';'))
-        return TileMatrix(shape)
+        shape, *rows = packed.split('\n')
+        matrix = TileMatrix(shape.split(':'))
+        registry = BlockRegistry.instance()
+        for row_idx, row_str in enumerate(rows):
+            cols = row_str.split(';')
+            for col_idx, col_str in enumerate(cols):
+                block_id, meta = col_str.split(':')
+                block = registry.by_id(block_id)
+                matrix[row_idx, col_idx] = Tile(block=block,
+                                                meta=meta)
+
+        return matrix
 
 
 class Chunk:
