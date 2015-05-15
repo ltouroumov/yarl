@@ -63,9 +63,13 @@ if args.rebuild is not None:
 width, height = map(int, args.video_mode.split(':'))
 window = sf.RenderWindow(sf.VideoMode(width, height), "pySFML Window")
 
-# tile_map = TileMap(size=sf.Vector2(9, 9),
-#                    atlas=tile_atlas)
-# tile_map.update(level, sf.Vector2(0, 0))
+tile_map = TileMap(size=sf.Vector2(9, 9),
+                   atlas=tile_atlas)
+try:
+    tile_map.update(level, sf.Vector2(0, 0))
+except Exception as e:
+    from traceback import print_tb
+    print_tb(e.__traceback__)
 
 # start the game loop
 while window.is_open:
@@ -79,9 +83,9 @@ while window.is_open:
             window.close()
 
     window.clear()  # clear screen
-    # window.draw(tile_map)
+    window.draw(tile_map)
 
     # Display tile map
-    spr = sf.Sprite(tile_atlas.texture)
-    window.draw(spr)
+    # spr = sf.Sprite(tile_atlas.texture)
+    # window.draw(spr)
     window.display()  # update the window

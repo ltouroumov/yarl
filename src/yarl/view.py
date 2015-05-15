@@ -56,19 +56,23 @@ class TileAtlas:
 
 
 class TileQuad:
-    def __init__(self, vertices, size):
+    def __init__(self, vertices, index, size):
         self.size = size
+        self.index = index
         self.vertices = vertices
+
+    def vertex(self, idx):
+        return self.vertices[self.index + idx]
 
     def set_position(self, pos):
         rect = sf.Rectangle(sf.Vector2(pos.x * self.size.x,
                                        pos.y * self.size.y),
                             self.size)
 
-        self.vertices[0].position = sf.Vector2(rect.left, rect.top)
-        self.vertices[1].position = sf.Vector2(rect.right, rect.top)
-        self.vertices[2].position = sf.Vector2(rect.right, rect.bottom)
-        self.vertices[3].position = sf.Vector2(rect.left, rect.bottom)
+        self.vertex(0).position = sf.Vector2(rect.left, rect.top)
+        self.vertex(1).position = sf.Vector2(rect.right, rect.top)
+        self.vertex(2).position = sf.Vector2(rect.right, rect.bottom)
+        self.vertex(3).position = sf.Vector2(rect.left, rect.bottom)
 
     def set_icon(self, icon):
         pass
@@ -91,15 +95,14 @@ class TileMap(sf.Drawable):
             # Compute tile position
             tpos = origin + pos
             # Compute vertex slice
-            aslice = pos.x + pos.y * self.size.y * 4
-            vslice = slice(aslice, aslice + 5)
+            base_idx = pos.x + pos.y * self.size.y * 4
 
             # Fetch tile & block
-            tile = floor.chunks.get_tile(tpos)
+            tile = floor.get_tile(tpos)
             block = tile.block
 
             # Render tile
-            quad = TileQuad(self.vertices[vslice], self.atlas.size)
+            quad = TileQuad(self.vertices, base_idx, self.atlas.size)
             quad.set_position(pos)
             block.render(tile.meta, quad)
 

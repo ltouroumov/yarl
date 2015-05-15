@@ -22,7 +22,7 @@ class SaveFile:
         self.is_open = False
 
     def open(self):
-        self.conn = sql.connect(self.path)
+        self.conn = sql.connect(self.path, detect_types=sql.PARSE_DECLTYPES)
         self.conn.row_factory = sql.Row
         self.schema = SaveSchema(self.conn, 1.0)
         self.is_open = True
@@ -81,7 +81,7 @@ class SaveFile:
         row = res.fetchone()
         world = World(name=row['name'],
                       save_file=self)
-        world.id = row["id"]
+        world.id = row['id']
         world.regions = self.load_regions(self.id)
 
         self.world = world

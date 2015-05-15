@@ -116,8 +116,8 @@ class ChunkTree:
 
 
 class TileMatrix(np.ndarray):
-    def __new__(cls, size):
-        return super(TileMatrix, cls).__new__(cls, shape=(size, size), dtype=Tile)
+    def __new__(cls, shape):
+        return super(TileMatrix, cls).__new__(cls, shape=shape, dtype=Tile)
 
     def pack(self):
         shape = "%s:%s" % self.shape
@@ -138,8 +138,9 @@ class TileMatrix(np.ndarray):
 
     @staticmethod
     def unpack(packed):
-        shape, *rows = packed.split('\n')
-        matrix = TileMatrix(shape.split(':'))
+        shape_str, *rows = packed.decode('ascii').split('\n')
+        shape = list(map(int, shape_str.split(":")))
+        matrix = TileMatrix(shape=shape)
         registry = BlockRegistry.instance()
         for row_idx, row_str in enumerate(rows):
             cols = row_str.split(';')
@@ -156,11 +157,14 @@ class Chunk:
     rank = 4
     size = 2 ** rank
 
-    def __init__(self, level_id, pos):
+    def __init__(self, level_id, pos, tiles=None):
         self.id = None
         self.level_id = level_id
         self.pos = pos
-        self.tiles = TileMatrix(self.size)
+        if tiles is None:
+            self.tiles = TileMatrix(shape=(self.size, self.size))
+        else:
+            self.tiles = tiles
 
     def __repr__(self):
         return "Chunk{ pos=(%i, %i) }" % (self.pos.x, self.pos.y)

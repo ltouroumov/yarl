@@ -17,6 +17,13 @@ class BlockRegistry:
         else:
             raise KeyError("Block %s does not exist" % name)
 
+    def by_id(self, block_id):
+        res = [blk for name, blk in self.blocks.items() if blk.key == int(block_id)]
+        if len(res) > 0:
+            return res[0]
+        else:
+            raise KeyError("Cannot find block with ID %s" % block_id)
+
 
 class Block:
     def __init__(self, key):

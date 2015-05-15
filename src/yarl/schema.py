@@ -117,13 +117,12 @@ class ChunkTable(SchemaTable):
         from yarl.map.chunk import Chunk
 
         with self.conn:
-            cur = self.conn.cursor();
+            cur = self.conn.cursor()
             cur.execute("SELECT * FROM chunks WHERE level_id = :level_id AND pos = :pos", kwargs)
             if cur.rowcount > 0:
                 row = cur.fetchone()
-                chunk = Chunk(row['pos'])
+                chunk = Chunk(kwargs['level_id'], row['pos'], row['tiles'])
                 chunk.id = row['id']
-                chunk.tiles = row['tiles']
                 return chunk
             else:
                 return None

@@ -21,7 +21,7 @@ def dump_vec2(vec2d):
 
 
 def load_vec2(data):
-    x, y = map(float, data.split(";"))
+    x, y = map(float, data.decode('ascii').split(";"))
     return sf.Vector2(x, y)
 
 
