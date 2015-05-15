@@ -2,26 +2,76 @@ from sfml import sf
 from itertools import product
 
 
+class TileIcon:
+    def __init__(self, cell, spr):
+        self.cell = cell
+        self.spr = spr
+
+
 class TileAtlas:
-    def __init__(self, size, order=64):
-        self.texture = sf.Texture()
+    def __init__(self, tex_pool, size, order=64):
+        self.tex_pool = tex_pool
+        self.texture = None
+        self.render = None
         self.size = size
         self.order = order
         self.next_id = 0
 
     def build(self, registry):
-        render = sf.RenderTexture(self.size.x * self.order, self.size.y * self.order)
+        self.render = sf.RenderTexture(self.size.x * self.order, self.size.y * self.order)
 
         for name, block in registry.blocks.items():
+            print("Registering icons for %s" % name)
             block.register_icons(self)
 
-        self.texture = render.texture
+        self.render.display()
+        self.texture = self.render.texture
 
-    def add_icon(self, tex_name, pos):
+    def add_icon(self, name):
+        x, y, path = name.split(':')
+        pos = sf.Vector2(int(x), int(y))
+
+        rect = sf.Rectangle(sf.Vector2(pos.x * self.size.x, pos.y * self.size.y),
+                            self.size)
+
+        tex = self.tex_pool.get(path)
+        spr = sf.Sprite(tex, rect)
+        spr.position = self.get_pos(self.next_id)
+
+        self.render.draw(spr)
+
+        icon = TileIcon(self.next_id, spr)
         self.next_id += 1
+
+        return icon
+
+    def get_pos(self, cell):
+        tu = cell % self.order
+        tv = cell // self.order
+
+        return sf.Vector2(tu * self.size.x, tv * self.size.y)
 
     def tex(self):
         return self.texture
+
+
+class TileQuad:
+    def __init__(self, vertices, size):
+        self.size = size
+        self.vertices = vertices
+
+    def set_position(self, pos):
+        rect = sf.Rectangle(sf.Vector2(pos.x * self.size.x,
+                                       pos.y * self.size.y),
+                            self.size)
+
+        self.vertices[0].position = sf.Vector2(rect.left, rect.top)
+        self.vertices[1].position = sf.Vector2(rect.right, rect.top)
+        self.vertices[2].position = sf.Vector2(rect.right, rect.bottom)
+        self.vertices[3].position = sf.Vector2(rect.left, rect.bottom)
+
+    def set_icon(self, icon):
+        pass
 
 
 class TileMap(sf.Drawable):
@@ -35,7 +85,7 @@ class TileMap(sf.Drawable):
         self.vertices.resize(self.size.x * self.size.y * 4)
         self.vertices.primitive_type = sf.PrimitiveType.QUADS
 
-        origin = center - (self.size / 2)
+        origin = center - (self.size // 2)
         points = [sf.Vector2(x, y) for (x, y) in product(range(0, self.size.x), range(0, self.size.y))]
         for pos in points:
             # Compute tile position
@@ -49,7 +99,9 @@ class TileMap(sf.Drawable):
             block = tile.block
 
             # Render tile
-            self.vertices[vslice] = block.render(tile.meta)
+            quad = TileQuad(self.vertices[vslice], self.atlas.size)
+            quad.set_position(pos)
+            block.render(tile.meta, quad)
 
     def draw(self, target, states):
         states.texture = self.atlas.tex()

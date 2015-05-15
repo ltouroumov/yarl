@@ -5,6 +5,7 @@ from yarl.map.chunk import Chunk
 from yarl.block import *
 from yarl.view import TileMap, TileAtlas
 from yarl.save import SaveFile
+from yarl.asset import AssetProvider, TexturePool
 
 args_parser = argparse.ArgumentParser()
 args_parser.add_argument('--video-mode', dest='video_mode', default='640:480')
@@ -18,8 +19,15 @@ registry.add(VoidBlock)
 registry.add(FloorBlock)
 registry.add(WallBlock)
 
+print("Loading Assets ...")
+asset_provider = AssetProvider(['assets.tar.gz'])
+asset_provider.load()
+tex_pool = TexturePool(asset_provider)
+
 print("Loading Textures ...")
-tile_atlas = TileAtlas()
+tile_atlas = TileAtlas(tex_pool=tex_pool,
+                       size=sf.Vector2(16, 16),
+                       order=16)
 tile_atlas.build(registry)
 
 print("Loading World ...")
@@ -55,8 +63,9 @@ if args.rebuild is not None:
 width, height = map(int, args.video_mode.split(':'))
 window = sf.RenderWindow(sf.VideoMode(width, height), "pySFML Window")
 
-tile_map = TileMap(sf.Vector2(9, 9))
-tile_map.update(level, sf.Vector2(0, 0))
+# tile_map = TileMap(size=sf.Vector2(9, 9),
+#                    atlas=tile_atlas)
+# tile_map.update(level, sf.Vector2(0, 0))
 
 # start the game loop
 while window.is_open:
@@ -70,5 +79,9 @@ while window.is_open:
             window.close()
 
     window.clear()  # clear screen
-    window.draw(tile_map)
+    # window.draw(tile_map)
+
+    # Display tile map
+    spr = sf.Sprite(tile_atlas.texture)
+    window.draw(spr)
     window.display()  # update the window

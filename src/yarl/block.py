@@ -26,26 +26,35 @@ class Block:
     def register_icons(self, registry):
         pass
 
-    def render(self, meta):
+    def render(self, meta, vertices):
         raise NotImplemented("Method 'render' must be implemented")
 
 
 class VoidBlock(Block):
     name = "block.void"
 
-    def render(self, meta):
+    def register_icons(self, registry):
+        self.icons['default'] = registry.add_icon('1:1:Objects/Floor.png')
+
+    def render(self, meta, vertices):
         pass
 
 
 class FloorBlock(Block):
     name = "block.floor"
 
-    def render(self, meta):
+    def register_icons(self, registry):
+        self.icons['default'] = registry.add_icon('15:4:Objects/Floor.png')
+
+    def render(self, meta, vertices):
         pass
 
 
 class WallBlock(Block):
     name = "block.wall"
 
-    def render(self, meta):
+    def register_icons(self, registry):
+        self.icons['default'] = registry.add_icon('3:3:Objects/Floor.png')
+
+    def render(self, meta, vertices):
         pass

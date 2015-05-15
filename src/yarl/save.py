@@ -62,6 +62,8 @@ class SaveFile:
             for n2, level in region.levels.items():
                 level.save()
 
+        self.conn.commit()
+
     def upsert(self, table, obj):
         table(self.conn).upsert(obj)
 
@@ -75,7 +77,6 @@ class SaveFile:
         if not self.has_schema():
             self.init()
 
-        print("Loading ...")
         res = self.conn.execute("SELECT * FROM worlds WHERE id = ?", (self.id,))
         row = res.fetchone()
         world = World(name=row['name'],
