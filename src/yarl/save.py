@@ -1,5 +1,6 @@
 import sqlite3 as sql
 from sfml import sf
+from yarl.block import BlockRegistry
 from yarl.map.chunk import TileMatrix
 from yarl.util import dump_vec2, load_vec2
 from yarl.schema import SaveSchema
@@ -76,6 +77,18 @@ class SaveFile:
 
         if not self.has_schema():
             self.init()
+
+        registry = BlockRegistry.instance()
+
+        res = self.conn.execute("SELECT * FROM metadata WHERE data_key = ?", ('block_mappings',))
+        row = res.fetchone()
+        if row is None:
+            registry.build_map()
+            self.conn.execute("INSERT INTO metadata(data_key, data_val) VALUES (?, ?)", ('block_mappings',
+                                                                                         registry.save_map()))
+            self.conn.commit()
+        else:
+            registry.load_map(row['data_val'])
 
         res = self.conn.execute("SELECT * FROM worlds WHERE id = ?", (self.id,))
         row = res.fetchone()

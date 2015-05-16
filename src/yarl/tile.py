@@ -1,10 +1,10 @@
-from yarl.block import VoidBlock
+from yarl.block import BlockRegistry
 
 
 class Tile:
     def __init__(self, block=None, meta=None):
         if block is None:
-            self.block = VoidBlock(0)
+            self.block = BlockRegistry.instance().get('block.void')
         else:
             self.block = block
 

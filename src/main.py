@@ -53,39 +53,67 @@ if args.rebuild is not None:
                in it.product(range(p1.x, p2.x), range(p1.y, p2.y)))
 
     for pos in all_pos:
-        level.set_block(pos, registry.get("block.floor"))
+        block = registry.get('block.floor')
+        if pos.x % 4 == 0:
+            block = registry.get('block.wall')
+        elif pos.y % 4 == 0:
+            block = registry.get('block.wall')
+
+        level.set_block(pos, block)
 
     print("Saving ...")
     save_file.save()
     print("Done!")
 
-# create the main window
-width, height = map(int, args.video_mode.split(':'))
-window = sf.RenderWindow(sf.VideoMode(width, height), "pySFML Window")
 
-tile_map = TileMap(size=sf.Vector2(9, 9),
-                   atlas=tile_atlas)
 try:
-    tile_map.update(level, sf.Vector2(0, 0))
+    # create the main window
+    width, height = map(int, args.video_mode.split(':'))
+    window = sf.RenderWindow(sf.VideoMode(width, height), "pySFML Window")
+
+    tile_map = TileMap(size=sf.Vector2(9, 9),
+                       atlas=tile_atlas)
+
+    map_center = sf.Vector2(0, 0)
+
+    tile_map.update(level, map_center)
+    tile_map.transform.scale(sf.Vector2(2, 2))
+    # start the game loop
+    while window.is_open:
+        # process events
+        for event in window.events:
+            # close window: exit
+            if type(event) is sf.CloseEvent:
+                window.close()
+
+            if type(event) is sf.KeyEvent:
+                if event.code == sf.Keyboard.Q:
+                    window.close()
+                elif event.code == sf.Keyboard.W:
+                    map_center += sf.Vector2(0, 1)
+                    tile_map.update(level, map_center)
+                elif event.code == sf.Keyboard.S:
+                    map_center += sf.Vector2(0, -1)
+                    tile_map.update(level, map_center)
+                elif event.code == sf.Keyboard.A:
+                    map_center += sf.Vector2(-1, 0)
+                    tile_map.update(level, map_center)
+                elif event.code == sf.Keyboard.D:
+                    map_center += sf.Vector2(1, 0)
+                    tile_map.update(level, map_center)
+                elif event.code == sf.Keyboard.R:
+                    tile_map.update(level, map_center)
+
+        window.clear()  # clear screen
+        window.draw(tile_map)
+
+        # Display tile map
+        spr = sf.Sprite(tile_atlas.texture)
+        spr.position = sf.Vector2(256 + 32, 0)
+        window.draw(spr)
+        window.display()  # update the window
+
 except Exception as e:
     from traceback import print_tb
+    print("=== Exception Occured ===")
     print_tb(e.__traceback__)
-
-# start the game loop
-while window.is_open:
-    # process events
-    for event in window.events:
-        # close window: exit
-        if type(event) is sf.CloseEvent:
-            window.close()
-
-        if type(event) is sf.KeyEvent and event.code == sf.Keyboard.Q:
-            window.close()
-
-    window.clear()  # clear screen
-    window.draw(tile_map)
-
-    # Display tile map
-    # spr = sf.Sprite(tile_atlas.texture)
-    # window.draw(spr)
-    window.display()  # update the window

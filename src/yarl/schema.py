@@ -39,11 +39,21 @@ class MetaTable(SchemaTable):
     depends = None
     fields = (
         ('data_key', 'varchar(128) PRIMARY KEY'),
-        ('data_val', 'VARCHAR(128)')
+        ('data_val', 'text')
     )
 
     update_sql = "UPDATE metadata SET data_key = ?, data_val = ?"
     insert_sql = "INSERT INTO metadata VALUES(?, ?)"
+
+    def select(self, **kwargs):
+        with self.conn:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM metadata WHERE data_key = :key", kwargs)
+            row = cur.fetchone()
+            if row is None:
+                return None
+
+            return row['data_val']
 
 
 class CharacterTable(SchemaTable):
@@ -119,13 +129,13 @@ class ChunkTable(SchemaTable):
         with self.conn:
             cur = self.conn.cursor()
             cur.execute("SELECT * FROM chunks WHERE level_id = :level_id AND pos = :pos", kwargs)
-            if cur.rowcount > 0:
-                row = cur.fetchone()
-                chunk = Chunk(kwargs['level_id'], row['pos'], row['tiles'])
-                chunk.id = row['id']
-                return chunk
-            else:
+            row = cur.fetchone()
+            if row is None:
                 return None
+
+            chunk = Chunk(kwargs['level_id'], row['pos'], row['tiles'])
+            chunk.id = row['id']
+            return chunk
 
 
 class EntityTable(SchemaTable):

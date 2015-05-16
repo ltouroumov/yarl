@@ -120,13 +120,14 @@ class TileMatrix(np.ndarray):
         return super(TileMatrix, cls).__new__(cls, shape=shape, dtype=Tile)
 
     def pack(self):
+        registry = BlockRegistry.instance()
         shape = "%s:%s" % self.shape
 
         def pack_tile(tile):
             if tile is None:
                 return "0:0"
             else:
-                return "%s:%s" % (tile.block.key, tile.meta)
+                return "%s:%s" % (registry.get_block_id(tile.block), tile.meta)
 
         def pack_row(row):
             prow = map(pack_tile, row)
@@ -146,7 +147,7 @@ class TileMatrix(np.ndarray):
             cols = row_str.split(';')
             for col_idx, col_str in enumerate(cols):
                 block_id, meta = col_str.split(':')
-                block = registry.by_id(block_id)
+                block = registry.from_id(block_id)
                 matrix[row_idx, col_idx] = Tile(block=block,
                                                 meta=meta)
 

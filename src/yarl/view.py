@@ -1,11 +1,4 @@
 from sfml import sf
-from itertools import product
-
-
-class TileIcon:
-    def __init__(self, cell, spr):
-        self.cell = cell
-        self.spr = spr
 
 
 class TileAtlas:
@@ -19,6 +12,7 @@ class TileAtlas:
 
     def build(self, registry):
         self.render = sf.RenderTexture(self.size.x * self.order, self.size.y * self.order)
+        self.render.clear()
 
         for name, block in registry.blocks.items():
             print("Registering icons for %s" % name)
@@ -40,7 +34,7 @@ class TileAtlas:
 
         self.render.draw(spr)
 
-        icon = TileIcon(self.next_id, spr)
+        icon = self.next_id
         self.next_id += 1
 
         return icon
@@ -51,13 +45,17 @@ class TileAtlas:
 
         return sf.Vector2(tu * self.size.x, tv * self.size.y)
 
+    def get_rect(self, cell):
+        pos = self.get_pos(cell)
+        return sf.Rectangle(pos, self.size)
+
     def tex(self):
         return self.texture
 
 
 class TileQuad:
-    def __init__(self, vertices, index, size):
-        self.size = size
+    def __init__(self, vertices, index, atlas):
+        self.atlas = atlas
         self.index = index
         self.vertices = vertices
 
@@ -65,9 +63,9 @@ class TileQuad:
         return self.vertices[self.index + idx]
 
     def set_position(self, pos):
-        rect = sf.Rectangle(sf.Vector2(pos.x * self.size.x,
-                                       pos.y * self.size.y),
-                            self.size)
+        rect = sf.Rectangle(sf.Vector2(pos.x * self.atlas.size.x,
+                                       pos.y * self.atlas.size.y),
+                            self.atlas.size)
 
         self.vertex(0).position = sf.Vector2(rect.left, rect.top)
         self.vertex(1).position = sf.Vector2(rect.right, rect.top)
@@ -75,13 +73,19 @@ class TileQuad:
         self.vertex(3).position = sf.Vector2(rect.left, rect.bottom)
 
     def set_icon(self, icon):
-        pass
+        rect = self.atlas.get_rect(icon)
+
+        self.vertex(0).tex_coords = sf.Vector2(rect.left, rect.top)
+        self.vertex(1).tex_coords = sf.Vector2(rect.right, rect.top)
+        self.vertex(2).tex_coords = sf.Vector2(rect.right, rect.bottom)
+        self.vertex(3).tex_coords = sf.Vector2(rect.left, rect.bottom)
 
 
 class TileMap(sf.Drawable):
     def __init__(self, size, atlas):
         sf.Drawable.__init__(self)
         self.vertices = sf.VertexArray()
+        self.transform = sf.Transform()
         self.size = size
         self.atlas = atlas
 
@@ -90,22 +94,26 @@ class TileMap(sf.Drawable):
         self.vertices.primitive_type = sf.PrimitiveType.QUADS
 
         origin = center - (self.size // 2)
-        points = [sf.Vector2(x, y) for (x, y) in product(range(0, self.size.x), range(0, self.size.y))]
-        for pos in points:
-            # Compute tile position
-            tpos = origin + pos
-            # Compute vertex slice
-            base_idx = pos.x + pos.y * self.size.y * 4
+        for y in range(0, self.size.y):
+            for x in range(self.size.x):
+                pos = sf.Vector2(x, y)
+                # Compute vertex slice
+                base_idx = (pos.x + pos.y * self.size.x) * 4
 
-            # Fetch tile & block
-            tile = floor.get_tile(tpos)
-            block = tile.block
+                # Compute tile position
+                tpos = origin + pos
+                # Fetch tile & block
+                tile = floor.get_tile(tpos)
+                block = tile.block
 
-            # Render tile
-            quad = TileQuad(self.vertices, base_idx, self.atlas.size)
-            quad.set_position(pos)
-            block.render(tile.meta, quad)
+                # Render tile
+                quad = TileQuad(self.vertices, base_idx, self.atlas)
+                quad.set_position(pos)
+                # quad.set_icon(0)
+                block.render(tile.meta, quad)
 
     def draw(self, target, states):
+        # sf.TransformableDrawable.draw(self, target, states)
+        states.transform *= self.transform
         states.texture = self.atlas.tex()
-        target.draw(self.vertices)
+        target.draw(self.vertices, states)
