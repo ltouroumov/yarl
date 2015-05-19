@@ -1,0 +1,5 @@
+{
+  "root": "src",
+  "base": "yarl.core",
+  "bootstrap": "Bootstrap"
+}

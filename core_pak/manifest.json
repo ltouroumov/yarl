@@ -1,13 +1,14 @@
 {
+  "name": "yarl.core",
   "assets": [
-    "Objects.json",
-    "Items.json",
-    "Characters.json"
+    "objects/manifest.json",
+    "items/manifest.json",
+    "characters/manifest.json"
   ],
   "sources": [
-    "YarlCore.json"
+    "core.json"
   ],
   "resources": [
-    "Rooms.json"
+    "rooms/manifest.json"
   ]
 }

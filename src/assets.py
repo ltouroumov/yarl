@@ -1,7 +1,8 @@
 from zipfile import ZipFile
 import argparse
 import json
-from os.path import realpath, basename, dirname, join
+import os
+from os.path import join, isdir, basename, dirname, realpath
 
 
 def compose(*funcs):
@@ -57,26 +58,61 @@ class BaseManifest:
 
 
 class AssetsManifest(BaseManifest):
+    """
+    Defines game assets to be packaged
+    Assets can be optimized during compilation
+    """
     def __init__(self, file):
         super().__init__(file)
-        self.tilesets = []
 
     def build(self, archive):
         pass
 
 class SourcesManifest(BaseManifest):
+    """
+    Defines python source files to be packaged
+    Sources will be compile()'d before being stored
+    """
     def __init__(self, file):
         super().__init__(file)
-        self.sources = []
+        self.root = realpath(join(self.base, self.manifest['root']))
+        self.base_package = self.manifest['base']
+        self.bootstrap = self.manifest['bootstrap']
 
     def build(self, archive):
-        pass
+        base_package = self.base_package.split('.')
+
+        def compile_sources():
+            compiled = dict()
+
+            def walk_dir(root, subpath=''):
+                for node in os.listdir(root):
+                    real_path = join(root, node)
+                    rel_path = join(subpath, node)
+                    if isdir(real_path):
+                        yield from walk_dir(real_path, rel_path)
+                    else:
+                        yield (real_path, rel_path)
+
+            for path, file in walk_dir(self.root):
+                file_package = (file[:-3] if '__init__.py' not in file else file[:-12]).split(os.sep)
+                package_name = str.join('.', base_package + list(filter(bool, file_package)))
+
+                yield (package_name, open(path, mode='r').read())
+
+            return compiled
+
+        for name, source in compile_sources():
+            archive.writestr(join('src', name), source)
 
 
 class ResourcesManifest(BaseManifest):
+    """
+    Defines resources files to be packaged
+    These files are copied without alterations
+    """
     def __init__(self, file):
         super().__init__(file)
-        self.resources = []
 
     def build(self, archive):
         pass
@@ -85,15 +121,12 @@ class ResourcesManifest(BaseManifest):
 class PackageManifest(BaseManifest):
     def __init__(self, file):
         super().__init__(file)
+        self.name = self.manifest['name']
 
         append_base_path = partial(join, self.base)
-
-        self.packages = compose(map, list)(compose(append_base_path, AssetsManifest),
-                                           self.manifest['assets'])
-        self.packages += compose(map, list)(compose(append_base_path, SourcesManifest),
-                                            self.manifest['sources'])
-        self.packages += compose(map, list)(compose(append_base_path, ResourcesManifest),
-                                            self.manifest['resources'])
+        self.packages = [AssetsManifest(file) for file in map(append_base_path, self.manifest['assets'])]
+        self.packages += [SourcesManifest(file) for file in map(append_base_path, self.manifest['sources'])]
+        self.packages += [ResourcesManifest(file) for file in map(append_base_path, self.manifest['resources'])]
 
     def build(self, archive_name):
         print("Building manifest %s in %s" % (self.name, self.base))
@@ -102,14 +135,16 @@ class PackageManifest(BaseManifest):
                 print("Building %s" % package.name)
                 package.build(archive)
 
-# Guard agains importing
+            archive.comment = json.dumps()
+
+# Guard against accidental execution
 if __name__ == "__main__":
     args_parser = argparse.ArgumentParser(description="Builds the asset bundle")
     args_parser.add_argument('manifest',
                              help="Package manifest (see documentation)")
     args_parser.add_argument('--name',
                              dest='name',
-                             default='assets.tar.gz',
+                             default='package.zip',
                              help="Target archive name")
     args = args_parser.parse_args()
 

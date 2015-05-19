@@ -69,7 +69,7 @@ class VoidBlock(Block):
     name = "block.void"
 
     def register_icons(self, registry):
-        self.icons['default'] = registry.add_icon('1:1:Objects/Floor.png')
+        self.icons['default'] = registry.add_icon('1:1:objects/Floor.png')
 
     def render(self, meta, quad):
         quad.set_icon(self.icons['default'])
@@ -79,7 +79,7 @@ class FloorBlock(Block):
     name = "block.floor"
 
     def register_icons(self, registry):
-        self.icons['default'] = registry.add_icon('15:4:Objects/Floor.png')
+        self.icons['default'] = registry.add_icon('15:4:objects/Floor.png')
 
     def render(self, meta, quad):
         quad.set_icon(self.icons['default'])
@@ -89,7 +89,7 @@ class WallBlock(Block):
     name = "block.wall"
 
     def register_icons(self, registry):
-        self.icons['default'] = registry.add_icon('3:3:Objects/Floor.png')
+        self.icons['default'] = registry.add_icon('3:3:objects/Floor.png')
 
     def render(self, meta, quad):
         quad.set_icon(self.icons['default'])
