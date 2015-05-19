@@ -1,0 +1,13 @@
+{
+  "assets": [
+    "Objects.json",
+    "Items.json",
+    "Characters.json"
+  ],
+  "sources": [
+    "YarlCore.json"
+  ],
+  "resources": [
+    "Rooms.json"
+  ]
+}

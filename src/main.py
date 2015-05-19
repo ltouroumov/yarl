@@ -11,6 +11,7 @@ args_parser = argparse.ArgumentParser()
 args_parser.add_argument('--video-mode', dest='video_mode', default='640:480')
 args_parser.add_argument('--world', dest='world', default='world')
 args_parser.add_argument('--rebuild', dest='rebuild', default=None)
+args_parser.add_argument('--load', dest='paks', nargs='*', default=[])
 args = args_parser.parse_args()
 
 print("Loading Blocks ...")
@@ -20,7 +21,7 @@ registry.add(FloorBlock)
 registry.add(WallBlock)
 
 print("Loading Assets ...")
-asset_provider = AssetProvider(['assets.tar.gz'])
+asset_provider = AssetProvider(['core.pak'] + args.paks)
 asset_provider.load()
 tex_pool = TexturePool(asset_provider)
 
