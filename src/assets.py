@@ -62,8 +62,13 @@ class AssetsManifest(BaseManifest):
     Defines game assets to be packaged
     Assets can be optimized during compilation
     """
+
+    class Asset:
+        pass
+
     def __init__(self, file):
         super().__init__(file)
+        self.tilesets = self.manifest['tilesets']
 
     def build(self, archive):
         pass

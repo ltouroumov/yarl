@@ -1,13 +1,17 @@
 {
-  "path": "Objects",
+  "path": "characters",
   "tilesets": [
     {
-      "name": "core.objects.floor",
-      "texture": "Floor.png"
+      "name": "player",
+      "texture": "Player0.png"
     },
     {
-      "name": "core.objects.wall",
-      "texture": "Wall.png"
+      "name": "elemental",
+      "texture": "Elemental0.png"
+    },
+    {
+      "name": "misc",
+      "texture": "Misc0.png"
     }
   ]
 }

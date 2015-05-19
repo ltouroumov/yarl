@@ -1,12 +1,12 @@
 {
-    "path": "Objects",
+    "path": "objects",
     "tilesets": [
         {
-            "name": "core.objects.floor",
+            "name": "floor",
             "texture": "Floor.png"
         },
         {
-            "name": "core.objects.wall",
+            "name": "wall",
             "texture": "Wall.png"
         }
     ]

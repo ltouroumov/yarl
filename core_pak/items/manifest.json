@@ -1,13 +1,13 @@
 {
-    "path": "Objects",
-    "tilesets": [
-        {
-            "name": "core.objects.floor",
-            "texture": "Floor.png"
-        },
-        {
-            "name": "core.objects.wall",
-            "texture": "Wall.png"
-        }
-    ]
+  "path": "items",
+  "tilesets": [
+    {
+      "name": "money",
+      "texture": "Money.png"
+    },
+    {
+      "name": "tools",
+      "texture": "Tool.png"
+    }
+  ]
 }
