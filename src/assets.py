@@ -1,7 +1,7 @@
-import tarfile
+from zipfile import ZipFile
 import argparse
 import json
-from os.path import realpath, dirname, join
+from os.path import realpath, basename, dirname, join
 
 
 def compose(*funcs):
@@ -42,37 +42,65 @@ def partial(func, *pargs, **pkwargs):
 
     return comp
 
-class AssetsManifest:
+base_dir = compose(realpath, dirname)
+
+
+class BaseManifest:
     def __init__(self, file):
         with open(file, 'r') as fd:
-            manifest = json.load(fd)
+            self.manifest = json.load(fd)
+            self.name = basename(file)
+            self.base = base_dir(file)
 
-        self.base = manifest['base']
+    def build(self, archive):
+        raise NotImplementedError
+
+
+class AssetsManifest(BaseManifest):
+    def __init__(self, file):
+        super().__init__(file)
         self.tilesets = []
 
+    def build(self, archive):
+        pass
 
-class SourcesManifest:
-    pass
-
-
-class ResourcesManifest:
-    pass
-
-
-class PackageManifest:
+class SourcesManifest(BaseManifest):
     def __init__(self, file):
-        with open(file, 'r') as fd:
-            pak_manifest = json.load(fd)
-            base_path = compose(realpath, dirname)(file)
+        super().__init__(file)
+        self.sources = []
 
-        append_base_path = partial(join, base_path)
+    def build(self, archive):
+        pass
 
-        self.assets = map(compose(append_base_path, AssetsManifest),
-                          pak_manifest['assets'])[:]
-        self.sources = map(compose(append_base_path, SourcesManifest),
-                           pak_manifest['sources'])[:]
-        self.resources = map(compose(append_base_path, ResourcesManifest),
-                             pak_manifest['resources'])[:]
+
+class ResourcesManifest(BaseManifest):
+    def __init__(self, file):
+        super().__init__(file)
+        self.resources = []
+
+    def build(self, archive):
+        pass
+
+
+class PackageManifest(BaseManifest):
+    def __init__(self, file):
+        super().__init__(file)
+
+        append_base_path = partial(join, self.base)
+
+        self.packages = compose(map, list)(compose(append_base_path, AssetsManifest),
+                                           self.manifest['assets'])
+        self.packages += compose(map, list)(compose(append_base_path, SourcesManifest),
+                                            self.manifest['sources'])
+        self.packages += compose(map, list)(compose(append_base_path, ResourcesManifest),
+                                            self.manifest['resources'])
+
+    def build(self, archive_name):
+        print("Building manifest %s in %s" % (self.name, self.base))
+        with ZipFile(archive_name, mode='w') as archive:
+            for package in self.packages:
+                print("Building %s" % package.name)
+                package.build(archive)
 
 # Guard agains importing
 if __name__ == "__main__":
@@ -81,10 +109,9 @@ if __name__ == "__main__":
                              help="Package manifest (see documentation)")
     args_parser.add_argument('--name',
                              dest='name',
-                             type=argparse.FileType('w+'),
                              default='assets.tar.gz',
                              help="Target archive name")
     args = args_parser.parse_args()
 
     manifest = PackageManifest(args.manifest)
-    print(manifest)
+    manifest.build(args.name)
