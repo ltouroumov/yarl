@@ -1,13 +1,15 @@
 {
-  "path": "items",
+  "name": "items",
   "tilesets": [
     {
       "name": "money",
-      "texture": "Money.png"
+      "texture": "Money.png",
+      "size": "16x16"
     },
     {
       "name": "tools",
-      "texture": "Tool.png"
+      "texture": "Tool.png",
+      "size": "16x16"
     }
   ]
 }

@@ -1,17 +1,20 @@
 {
-  "path": "characters",
+  "name": "characters",
   "tilesets": [
     {
       "name": "player",
-      "texture": "Player0.png"
+      "texture": "Player0.png",
+      "size": "16x16"
     },
     {
       "name": "elemental",
-      "texture": "Elemental0.png"
+      "texture": "Elemental0.png",
+      "size": "16x16"
     },
     {
       "name": "misc",
-      "texture": "Misc0.png"
+      "texture": "Misc0.png",
+      "size": "16x16"
     }
   ]
 }

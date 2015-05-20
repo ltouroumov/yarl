@@ -1,13 +1,15 @@
 {
-    "path": "objects",
-    "tilesets": [
-        {
-            "name": "floor",
-            "texture": "Floor.png"
-        },
-        {
-            "name": "wall",
-            "texture": "Wall.png"
-        }
-    ]
+  "name": "objects",
+  "tilesets": [
+    {
+      "name": "floor",
+      "texture": "Floor.png",
+      "size": "16x16"
+    },
+    {
+      "name": "wall",
+      "texture": "Wall.png",
+      "size": "16x16"
+    }
+  ]
 }
