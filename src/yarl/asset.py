@@ -49,7 +49,7 @@ class AssetsManifest(BaseManifest):
 
     def index(self, index):
         for name, path in self.tilesets():
-            index.add_tileset(name, path)
+            index.add_item(PackageIndex.TILESET, name, path)
 
     def build(self, archive):
         for name, path in self.tilesets():
@@ -88,7 +88,7 @@ class SourcesManifest(BaseManifest):
 
     def index(self, index):
         for name, path in self.sources():
-            index.add_module(name, path)
+            index.add_item(PackageIndex.MODULE, name, path)
 
     def build(self, archive):
         for name, path in self.sources():
@@ -114,7 +114,7 @@ class ResourcesManifest(BaseManifest):
 
     def index(self, index):
         for name, file in self.resources():
-            index.add_resource(name, file)
+            index.add_item(PackageIndex.RESOURCE, name, file)
 
     def build(self, archive):
         for name, file in self.resources():
@@ -126,46 +126,32 @@ class PackageIndex:
     Indexes resources inside a package
     Allows test of existence in archive packages and maps keys to files in directory packages
     """
+
+    MODULE = 'modules'
+    TILESET = 'tilesets'
+    RESOURCE = 'resources'
+
     def __init__(self):
         self.modules = dict()
         self.tilesets = dict()
         self.resources = dict()
 
-    def add_module(self, name, path):
-        if name in self.modules:
-            raise KeyError("Duplicate module key")
+    def add_item(self, kind, name, path):
+        pool = getattr(self, kind)
+        if name in pool:
+            raise KeyError("Duplicate %s key: %s" % (kind, name))
 
-        self.modules[name] = path
+        pool[name] = path
 
-    def add_tileset(self, name, path):
-        if name in self.tilesets:
-            raise KeyError("Duplicate tileset key")
+    def has_item(self, kind, name):
+        return name in getattr(self, kind)
 
-        self.tilesets[name] = path
+    def get_item(self, kind, name):
+        pool = getattr(self, kind)
+        if name in pool:
+            raise KeyError("Duplicate %s key: %s" % (kind, name))
 
-    def add_resource(self, name, path):
-        if name in self.resources:
-            raise KeyError("Duplicate resource key")
-
-        self.resources[name] = path
-
-    def get_module(self, name):
-        if name not in self.modules:
-            return None
-
-        return self.modules[name]
-
-    def get_tileset(self, name):
-        if name not in self.tilesets:
-            return None
-
-        return self.tilesets[name]
-
-    def get_resource(self, name):
-        if name not in self.resources:
-            return None
-
-        return self.resources[name]
+        return pool[name]
 
     def load(self, data):
         data = json.loads(data)
@@ -222,19 +208,20 @@ class BasePackage:
         self.index = PackageIndex()
 
     def load(self):
+        """
+        This method is responsible for loading the index and other necessary resources
+        """
         raise NotImplementedError
 
     def contains(self, key, kind):
-        if kind == 'source':
-            lookup = self.index.has_module
-        elif kind == 'tileset':
-            lookup = self.index.has_tileset
-        elif kind == 'resource':
-            lookup = self.index.has_resource
-        else:
-            raise RuntimeError("Resource kind not handled %s" % kind)
+        return self.index.has_item(kind, key)
 
-        return lookup(key)
+    def read(self, key):
+        """
+        Reads the requested key from the package
+        WARNING: Will not call `contains` but will fail silently
+        """
+        raise NotImplementedError
 
 
 class ArchivePackage(BasePackage):
@@ -249,11 +236,17 @@ class ArchivePackage(BasePackage):
         index = self.archive.read('index.json').decode('utf-8')
         self.index.load(index)
 
+    def read(self, key):
+        pass
+
 
 class DirectoryPackage(BasePackage):
     def load(self):
         manifest = PackageManifest(self.location)
         manifest.index(self.index)
+
+    def read(self, key):
+        pass
 
 
 class PackageLoader:
