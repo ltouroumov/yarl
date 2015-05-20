@@ -1,5 +1,7 @@
 import re
 from sfml import sf
+from os.path import dirname, realpath
+import hashlib
 
 
 def cantor_tuple(*items):
@@ -30,6 +32,59 @@ def make_slug(raw_str):
     slug = re.sub(r'[^a-z0-9]+', '-', slug)
     slug = re.sub(r'[-]+', '-', slug)
     return slug
+
+
+def compose(*funcs):
+    """
+    Composes two or more functions
+
+    :param funcs: List of functions to apply (from first to last)
+    :return: Proxy functor
+    """
+
+    def comp(*args, **kwargs):
+        res = funcs[0](*args, **kwargs)
+        for func in funcs[1:]:
+            res = func(res)
+
+        return res
+
+    return comp
+
+
+def partial(func, *pargs, **pkwargs):
+    """
+    Performs partial application on `func`
+
+    :param func: function to apply
+    :param pargs: default positional parameters
+    :param pkwargs: default keyword parameters
+    :return: Proxy functor
+    """
+
+    def comp(*cargs, **ckwargs):
+        # Concatenate positional parameters
+        args = pargs + cargs
+
+        # Merge kwargs
+        kwargs = pkwargs.copy()
+        kwargs.update(ckwargs)
+
+        # Call function
+        return func(*args, **kwargs)
+
+    return comp
+
+
+base_dir = compose(realpath, dirname)
+
+
+def hash_file(path):
+    checksum = hashlib.sha1()
+    with open(path, mode='rb') as fd:
+        checksum.update(fd.read(128))
+
+    return checksum.hexdigest()
 
 
 class Singleton:
