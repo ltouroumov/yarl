@@ -19,16 +19,16 @@ args_parser.add_argument('--rebuild', dest='rebuild', default=None)
 args_parser.add_argument('--load', dest='paks', nargs='*', default=[])
 args = args_parser.parse_args()
 
+print("Loader Setup")
+asset_provider = AssetProvider(['core.pak'] + args.paks)
+asset_provider.load()
+tex_pool = TexturePool(asset_provider)
+
 print("Loading Blocks ...")
 registry = BlockRegistry.instance()
 registry.add(VoidBlock)
 registry.add(FloorBlock)
 registry.add(WallBlock)
-
-print("Loading Assets ...")
-asset_provider = AssetProvider(['core.pak'] + args.paks)
-asset_provider.load()
-tex_pool = TexturePool(asset_provider)
 
 print("Loading Textures ...")
 tile_atlas = TileAtlas(tex_pool=tex_pool,

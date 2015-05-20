@@ -1,4 +1,3 @@
-import os.path as path
 import tarfile as tar
 from sfml import sf
 from zipfile import ZipFile
@@ -7,7 +6,7 @@ import json
 import glob
 from collections import namedtuple
 import os
-from os.path import join, isdir, basename, realpath, relpath
+from os.path import join, isdir, isfile, basename, realpath, relpath
 
 
 class BaseManifest:
@@ -60,7 +59,7 @@ class AssetsManifest(BaseManifest):
 class SourcesManifest(BaseManifest):
     """
     Defines python source files to be packaged
-    Sources will be compile()'d before being stored
+    Sources might be processed before storage
     """
 
     def __init__(self, file):
@@ -123,6 +122,10 @@ class ResourcesManifest(BaseManifest):
 
 
 class PackageIndex:
+    """
+    Indexes resources inside a package
+    Allows test of existence in archive packages and maps keys to files in directory packages
+    """
     def __init__(self):
         self.modules = dict()
         self.tilesets = dict()
@@ -146,6 +149,30 @@ class PackageIndex:
 
         self.resources[name] = path
 
+    def get_module(self, name):
+        if name not in self.modules:
+            return None
+
+        return self.modules[name]
+
+    def get_tileset(self, name):
+        if name not in self.tilesets:
+            return None
+
+        return self.tilesets[name]
+
+    def get_resource(self, name):
+        if name not in self.resources:
+            return None
+
+        return self.resources[name]
+
+    def load(self, data):
+        data = json.loads(data)
+        self.modules = dict.fromkeys(data['modules'], '<archive>')
+        self.tilesets = dict.fromkeys(data['tilesets'], '<archive>')
+        self.resources = dict.fromkeys(data['resources'], '<archive>')
+
     @property
     def json(self):
         return json.dumps({'modules': list(self.modules.keys()),
@@ -154,6 +181,9 @@ class PackageIndex:
 
 
 class PackageManifest(BaseManifest):
+    """
+    Processes a top-level manifest.json from a package
+    """
     def __init__(self, file):
         super().__init__(file)
         self.name = self.manifest['name']
@@ -163,27 +193,84 @@ class PackageManifest(BaseManifest):
         self.packages += [SourcesManifest(file) for file in map(append_base_path, self.manifest['sources'])]
         self.packages += [ResourcesManifest(file) for file in map(append_base_path, self.manifest['resources'])]
 
-        self.index = PackageIndex()
+        self.pkindex = PackageIndex()
 
     def index(self, index):
-        raise RuntimeError("Use build_index on the package manifest")
+        for package in self.packages:
+            package.index(index)
 
     def build(self, archive):
-        raise RuntimeError("Use build_archive on the package manifest")
+        for package in self.packages:
+            print("Building %s" % relpath(package.manifest_path, self.base))
+            package.index(self.pkindex)
+            package.build(archive)
+
+        archive.writestr('index.json', self.pkindex.json)
 
     def build_archive(self, archive_name):
         print("Building manifest %s in %s" % (self.name, self.base))
         with ZipFile(archive_name, mode='w') as archive:
-            for package in self.packages:
-                print("Building %s" % relpath(package.manifest_path, self.base))
-                package.index(self.index)
-                package.build(archive)
-
-            archive.writestr('manifest.json', self.index.json)
+            self.build(archive)
 
     def build_index(self):
-        for package in self.packages:
-            package.index(self.index)
+        self.index(self.pkindex)
+
+
+class BasePackage:
+    def __init__(self, location):
+        self.location = location
+        self.index = PackageIndex()
+
+    def load(self):
+        raise NotImplementedError
+
+    def contains(self, key, kind):
+        if kind == 'source':
+            lookup = self.index.has_module
+        elif kind == 'tileset':
+            lookup = self.index.has_tileset
+        elif kind == 'resource':
+            lookup = self.index.has_resource
+        else:
+            raise RuntimeError("Resource kind not handled %s" % kind)
+
+        return lookup(key)
+
+
+class ArchivePackage(BasePackage):
+    def __init__(self, location):
+        super().__init__(location)
+        self.archive = None
+
+    def load(self):
+        self.archive = ZipFile(self.location, mode='r')
+
+        # Decode and load index
+        index = self.archive.read('index.json').decode('utf-8')
+        self.index.load(index)
+
+
+class DirectoryPackage(BasePackage):
+    def load(self):
+        manifest = PackageManifest(self.location)
+        manifest.index(self.index)
+
+
+class PackageLoader:
+    def __init__(self, packages):
+        self.packages = dict.fromkeys(packages)
+
+    def load(self):
+        for name in self.packages:
+            if '.json' in name:
+                package = DirectoryPackage(name)
+            elif '.zip' in name:
+                package = ArchivePackage(name)
+            else:
+                raise RuntimeError("Unhandled location for package %s" % name)
+
+            package.load()
+            self.packages[name] = package
 
 
 class AssetProvider:
@@ -194,7 +281,7 @@ class AssetProvider:
     def load(self):
         for file in self.repo_files:
             print("Loading repository %s" % file)
-            name = path.basename(file)
+            name = basename(file)
             self.repo_tar[name] = tar.open(file, mode='r:gz')
 
     def get_file(self, file):
@@ -208,7 +295,7 @@ class AssetProvider:
                 # Discard not found exception for individual repositories
                 pass
 
-        raise KeyError("File not found %s in asset repositories" % path)
+        raise KeyError("File not found %s in asset repositories" % file)
 
 
 class TexturePool:
