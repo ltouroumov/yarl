@@ -6,7 +6,9 @@ from yarl.block import *
 from yarl.service import ServiceLocator
 from yarl.view import TileMap, TileAtlas
 from yarl.save import SaveFile
-from yarl.asset import AssetProvider, TexturePool, PackageLoader
+from yarl.asset import AssetProvider, TexturePool
+from yarl.package import PackageLoader
+
 
 if __name__ != "__main__":
     raise RuntimeError("Cannot import this module!")

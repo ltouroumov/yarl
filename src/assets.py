@@ -1,5 +1,5 @@
 import argparse
-from yarl.asset import PackageManifest
+from yarl.package import PackageManifest
 
 args_parser = argparse.ArgumentParser(description="Builds the asset bundle")
 args_parser.add_argument('manifest',
