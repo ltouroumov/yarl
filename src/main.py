@@ -3,10 +3,10 @@ import argparse
 from sfml import sf
 from yarl.map.chunk import Chunk
 from yarl.block import *
+from yarl.service import ServiceLocator
 from yarl.view import TileMap, TileAtlas
 from yarl.save import SaveFile
-from yarl.asset import AssetProvider, TexturePool
-
+from yarl.asset import AssetProvider, TexturePool, PackageLoader
 
 if __name__ != "__main__":
     raise RuntimeError("Cannot import this module!")
@@ -19,8 +19,22 @@ args_parser.add_argument('--rebuild', dest='rebuild', default=None)
 args_parser.add_argument('--load', dest='paks', nargs='*', default=[])
 args = args_parser.parse_args()
 
+print("Setting up services ...")
+locator = ServiceLocator.instance()
+
 print("Loader Setup")
-asset_provider = AssetProvider(['core.pak'] + args.paks)
+package_loader = PackageLoader(['core.zip'] + args.paks)
+package_loader.load()
+package_loader.hook()
+
+locator.add_instance('core.package_loader', package_loader)
+
+from yarl.core import Bootstrap
+Bootstrap()
+
+exit()
+
+asset_provider = AssetProvider()
 asset_provider.load()
 tex_pool = TexturePool(asset_provider)
 

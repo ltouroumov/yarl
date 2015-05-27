@@ -7,6 +7,7 @@ import glob
 from collections import namedtuple
 import os
 from os.path import join, isdir, isfile, basename, realpath, relpath
+from importlib.util import module_for_loader
 
 
 class BaseManifest:
@@ -252,19 +253,59 @@ class DirectoryPackage(BasePackage):
 class PackageLoader:
     def __init__(self, packages):
         self.packages = dict.fromkeys(packages)
+        self.class_loader = PackagedClassLoader(self)
 
     def load(self):
+        """
+        Load packages definitions from disk
+        """
+
         for name in self.packages:
             if '.json' in name:
                 package = DirectoryPackage(name)
             elif '.zip' in name:
                 package = ArchivePackage(name)
             else:
-                raise RuntimeError("Unhandled location for package %s" % name)
+                raise RuntimeError("Unhandled package type for %s" % name)
 
             package.load()
             self.packages[name] = package
+        self.class_loader.build()
 
+    def hook(self):
+        """
+        Hook class loader to meta_path
+        """
+        import sys
+        sys.meta_path.append(self.class_loader)
+
+
+class PackagedClassLoader:
+    """
+    Implements PEP 302 class loading protocol
+    """
+    def __init__(self, loader):
+        self.loader = loader
+        self.modules = dict()
+
+    def build(self):
+        """
+        Build the package index to allow for fast lookup
+        """
+        for pkname, package in self.loader.packages.items():
+            for module in package.index.modules:
+                self.modules[module] = package
+
+    def find_module(self, name, path=None):
+        print("Lookup for %s (path=%s)" % (name, path))
+        if name in self.modules:
+            return self
+        else:
+            return None
+
+    @module_for_loader
+    def load_module(self, module):
+        pass
 
 class AssetProvider:
     def __init__(self, repo_files):
