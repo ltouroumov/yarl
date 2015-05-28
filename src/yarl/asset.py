@@ -1,12 +1,13 @@
 import tarfile as tar
 from sfml import sf
 from os.path import basename
+from yarl.service import Inject
 
 
-class AssetProvider:
-    def __init__(self, repo_files):
-        self.repo_files = repo_files
-        self.repo_tar = dict()
+@Inject(loader='engine.package_loader')
+class AssetLoader:
+    def __init__(self, loader):
+        self.loader = loader
 
     def load(self):
         for file in self.repo_files:

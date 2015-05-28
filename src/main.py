@@ -6,7 +6,7 @@ from yarl.block import *
 from yarl.service import ServiceLocator
 from yarl.view import TileMap, TileAtlas
 from yarl.save import SaveFile
-from yarl.asset import AssetProvider, TexturePool
+from yarl.asset import AssetLoader, TexturePool
 from yarl.package import PackageLoader
 
 
@@ -29,17 +29,9 @@ package_loader = PackageLoader(['core.zip'] + args.paks)
 package_loader.load()
 package_loader.hook()
 
-locator.add_instance('core.package_loader', package_loader)
-
-from yarl.core import Bootstrap
-Bootstrap()
-
-exit()
-
-asset_provider = AssetProvider()
-asset_provider.load()
-tex_pool = TexturePool(asset_provider)
-
+locator.add_instance('engine.package_loader', package_loader)
+locator.add_factory('engine.asset_loader', AssetLoader)
+locator.add_factory('engine.block_registry', BlockRegistry)
 print("Loading Blocks ...")
 registry = BlockRegistry.instance()
 registry.add(VoidBlock)

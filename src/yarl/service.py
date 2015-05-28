@@ -34,3 +34,27 @@ class ServiceLocator:
 
         factory = self.factories[name]
         self.instances[name] = factory(self)
+
+
+class Inject:
+    def __init__(self, **services):
+        self.services = services
+
+    def __call__(self, decorated):
+        return Injector(decorated, self.services)
+
+
+class Injector:
+    def __init__(self, decorated, services):
+        self.decorated = decorated
+        self.services = services
+
+    def __call__(self, locator, *args, **kwargs):
+        if locator is not ServiceLocator:
+            raise TypeError("First argument must be an instance of ServiceLocator")
+
+        kwargs.update({attr: locator.get(name) for attr, name in self.services.items()})
+        return self.decorated(*args, **kwargs)
+
+    def __instancecheck__(self, inst):
+        return isinstance(inst, self.decorated)

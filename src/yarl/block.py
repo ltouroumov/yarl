@@ -1,8 +1,7 @@
-from yarl.util import Singleton
-
-
-@Singleton
 class BlockRegistry:
+    """
+    Registry of all block types
+    """
     def __init__(self):
         self.id_map = None
         self.blocks = dict()
@@ -55,10 +54,18 @@ class BlockRegistry:
 
 
 class Block:
+    """
+    Base Block Interface
+    """
     def __init__(self):
         self.icons = dict()
 
     def register_icons(self, quad):
+        """
+        Called when the
+        :param quad:
+        :return:
+        """
         pass
 
     def render(self, meta, vertices):
