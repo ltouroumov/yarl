@@ -33,6 +33,6 @@ The game code (everything else unless specified) is provided under the following
 -	The origin of this software must not be misrepresented; you must not claim that you wrote the original software. 
 -	Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software. This notice may not be removed or altered from any source distribution. 
 -	By making a pull request on our GitHub repository, you're stating that you're author of these changes or have rights to the changes you've made and you're giving us the right to use it in any way.
--	Commercial usage is allowed only after you obtain an agreement from us: info@keenswh.com
+-	Commercial usage is allowed only after you obtain an agreement from us
 -	We reserve the right to change this license at any time with or without notice, with immediate and/or retroactive effect. We believe that what we ask is reasonable, so please don't try to bypass it. We're trying to be open and honest, and we hope people treat us the same way back. 
 -	Don't be afraid to experiment with the source code. If you break something, you can always revert by downloading it again. 
