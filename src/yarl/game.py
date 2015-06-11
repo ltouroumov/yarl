@@ -1,5 +1,6 @@
 from yarl.asset import AssetLoader
 from yarl.block import BlockRegistry
+from yarl.debug import DebugConsole
 from yarl.package import PackageLoader
 from yarl.service import Container, Service
 

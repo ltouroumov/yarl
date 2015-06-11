@@ -1,5 +1,8 @@
 import argparse
+from yarl.debug import DebugConsole, ConsoleHandler
 from yarl.game import Game
+from logging import getLogger
+from threading import Thread
 
 if __name__ != "__main__":
     raise RuntimeError("Cannot import this module!")
@@ -10,9 +13,15 @@ args_parser.add_argument('--video-mode', dest='video_mode', default='640:480')
 args_parser.add_argument('--world', dest='world', default='world')
 args_parser.add_argument('--rebuild', dest='rebuild', default=None)
 args_parser.add_argument('--load', dest='paks', nargs='*', default=[])
+args_parser.add_argument('--debug', dest='debug', default=34445)
 args = args_parser.parse_args()
 
-Game(args).run()
+console = DebugConsole(args.debug)
+console.start()
+
+getLogger().addHandler(ConsoleHandler(console))
+console.join()
+# Game(args).run()
 
 """
 print("Loading World ...")
