@@ -76,6 +76,12 @@ def partial(func, *pargs, **pkwargs):
     return comp
 
 
+def apply_seq(seq, func_name, *args, **kwargs):
+    for item in filter(lambda x: hasattr(x, func_name), seq):
+        func = getattr(item, func_name)
+        func(*args, **kwargs)
+
+
 base_dir = compose(realpath, dirname)
 
 
@@ -108,6 +114,7 @@ class Singleton(object):
         self._decorated = decorated
         self._instance = None
 
+    @property
     def instance(self):
         """
         Returns the singleton instance. Upon its first call, it creates a

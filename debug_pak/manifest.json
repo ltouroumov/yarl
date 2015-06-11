@@ -1,0 +1,10 @@
+{
+  "name": "yarl.debug",
+  "assets": [],
+  "sources": [
+    "debug.json"
+  ],
+  "resources": [
+    "web/manifest.json"
+  ]
+}

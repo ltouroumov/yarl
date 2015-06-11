@@ -36,17 +36,21 @@ class Container(object):
             raise KeyError("ServiceLocator does not have a factory for %s" % name)
 
         factory = self.factories[name]
-        self.instances[name] = factory(self)
+        self.instances[name] = factory()
 
 
 class Service(object):
+    @staticmethod
+    def get(name):
+        return Container.instance.get(name)
+
     def __init__(self, name):
         self.name = name
         self.cache = None
 
     def __get__(self, instance, owner):
         if self.cache is None:
-            container = Container.instance()
+            container = Container.instance
             self.cache = container.get(self.name)
 
         return self.cache

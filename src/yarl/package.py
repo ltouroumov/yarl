@@ -7,7 +7,9 @@ import os
 from os.path import join, isdir, basename, realpath, relpath
 from importlib.util import module_for_loader
 import pickle
+import logging
 
+logger = logging.getLogger(__name__)
 
 class BaseManifest(object):
     def __init__(self, file):
@@ -89,13 +91,14 @@ class SourcesManifest(BaseManifest):
 
     def index(self, index):
         for name, ispkg, path in self.sources():
-            index.add_item(PackageIndex.MODULE, name, path)
+            index.add_item(PackageIndex.MODULE, name, path, meta={'is_package': ispkg})
+        index.add_item(PackageIndex.LOADER, self.name, self.bootstrap, meta={'base_package': self.base_package})
 
     def build(self, archive):
         for name, ispkg, path in self.sources():
             source = open(path, 'r').read()
             archive.writestr(join('src', name),
-                             data=pickle.dumps([ispkg, source]))
+                             data=source)
 
 
 class ResourcesManifest(BaseManifest):
@@ -129,22 +132,23 @@ class PackageIndex(object):
     Indexes resources inside a package
     Allows test of existence in archive packages and maps keys to files in directory packages
     """
-
+    LOADER = 'loaders'
     MODULE = 'modules'
     TILESET = 'tilesets'
     RESOURCE = 'resources'
 
     def __init__(self):
+        self.loaders = dict()
         self.modules = dict()
         self.tilesets = dict()
         self.resources = dict()
 
-    def add_item(self, kind, name, path):
+    def add_item(self, kind, name, path, meta=None):
         pool = getattr(self, kind)
         if name in pool:
             raise KeyError("Duplicate %s key: %s" % (kind, name))
 
-        pool[name] = path
+        pool[name] = (path, meta)
 
     def has_item(self, kind, name):
         return name in getattr(self, kind)
@@ -158,15 +162,17 @@ class PackageIndex(object):
 
     def load(self, data):
         data = json.loads(data)
-        self.modules = {name: "src/%s" % name for name in data['modules']}
-        self.tilesets = {name: "assets/%s" % name for name in data['tilesets']}
-        self.resources = {name: name for name in data['resources']}
+        self.loaders = data['loaders']
+        self.modules = {name: ("src/%s" % name, meta) for name, meta in data['modules'].items()}
+        self.tilesets = {name: ("assets/%s" % name, meta) for name, meta in data['tilesets'].items()}
+        self.resources = {name: (name, meta) for name, meta in data['resources'].items()}
 
     @property
     def json(self):
-        return json.dumps({'modules': list(self.modules.keys()),
-                           'tilesets': list(self.tilesets.keys()),
-                           'resources': list(self.resources.keys())})
+        return json.dumps({'loaders': {name: info for name, info in self.loaders.items()},
+                           'modules': {name: meta for name, (path, meta) in self.modules.items()},
+                           'tilesets': {name: meta for name, (path, meta) in self.modules.items()},
+                           'resources': {name: meta for name, (path, meta) in self.modules.items()}})
 
 
 class PackageManifest(BaseManifest):
@@ -190,14 +196,15 @@ class PackageManifest(BaseManifest):
 
     def build(self, archive):
         for package in self.packages:
-            print("Building %s" % relpath(package.manifest_path, self.base))
+            logger.info("Building %s" % relpath(package.manifest_path, self.base))
             package.index(self.pkindex)
             package.build(archive)
 
-        archive.writestr('index.json', self.pkindex.json)
+        json = self.pkindex.json
+        archive.writestr('index.json', json)
 
     def build_archive(self, archive_name):
-        print("Building manifest %s in %s" % (self.name, self.base))
+        logger.info("Building manifest %s in %s" % (self.name, self.base))
         with ZipFile(archive_name, mode='w') as archive:
             self.build(archive)
 
@@ -241,9 +248,9 @@ class ArchivePackage(BasePackage):
 
     def read(self, name, kind):
         try:
-            arcname = self.index.get_item(kind, name)
+            arcname, meta = self.index.get_item(kind, name)
             data = self.archive.open(arcname, mode='r')
-            return data.read()
+            return data.read(), meta
         except KeyError:
             raise KeyError("Key %s does not exist in package %s" % (name, self.location))
 
@@ -255,9 +262,9 @@ class DirectoryPackage(BasePackage):
 
     def read(self, name, kind):
         try:
-            path = self.index.get_item(kind, name)
-            data = open(path, mode='r')
-            return data.read()
+            path, meta = self.index.get_item(kind, name)
+            data = open(path, mode='rb')
+            return data.read(), meta
         except KeyError:
             raise KeyError("Key %s does not exist in package %s" % (name, self.location))
 
@@ -284,6 +291,9 @@ class PackageLoader(object):
             self.packages[name] = package
         self.class_loader.build()
 
+    def get_from_module(self, name):
+        return self.class_loader.get_package(name)
+
     def hook(self):
         """
         Hook class loader to meta_path
@@ -309,22 +319,25 @@ class PackagedClassLoader(object):
                 self.modules[module] = package
 
     def find_module(self, name, path=None):
-        print("Lookup for %s (path=%s)" % (name, path))
+        logger.debug("Lookup for %s (path=%s)" % (name, path))
         if name in self.modules:
             return self
         else:
             return None
 
+    def get_package(self, fullname):
+        return self.modules[fullname]
+
     @module_for_loader
     def load_module(self, module):
         fullname = module.__name__
-        package = self.modules[fullname]
-        is_package, source = pickle.loads(package.read(fullname, PackageIndex.MODULE))
+        package = self.get_package(fullname)
+        source, meta = package.read(fullname, PackageIndex.MODULE)
 
         module.__file__ = "<%s:%s>" % (package.location, fullname)
         module.__loader__ = self
 
-        if is_package:
+        if meta['is_package']:
             module.__path__ = []
             module.__package__ = fullname
         else:
