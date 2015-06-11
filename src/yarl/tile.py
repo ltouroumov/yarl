@@ -1,7 +1,7 @@
 from yarl.block import BlockRegistry
 
 
-class Tile:
+class Tile(object):
     def __init__(self, block=None, meta=None):
         if block is None:
             self.block = BlockRegistry.instance().get('block.void')

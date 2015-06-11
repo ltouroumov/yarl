@@ -87,7 +87,7 @@ def hash_file(path):
     return checksum.hexdigest()
 
 
-class Singleton:
+class Singleton(object):
     """
     A non-thread-safe helper class to ease implementing singletons.
     This should be used as a decorator -- not a metaclass -- to the

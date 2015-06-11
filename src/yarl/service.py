@@ -2,10 +2,13 @@ from yarl.util import Singleton
 
 
 @Singleton
-class ServiceLocator:
+class Container(object):
     def __init__(self):
         self.factories = dict()
         self.instances = dict()
+
+        # Cyclic references >_<
+        self.add_instance('service_container', self)
 
     def add_factory(self, name, factory):
         if name in self.factories:
@@ -36,7 +39,26 @@ class ServiceLocator:
         self.instances[name] = factory(self)
 
 
-class Inject:
+class Service(object):
+    def __init__(self, name):
+        self.name = name
+        self.cache = None
+
+    def __get__(self, instance, owner):
+        if self.cache is None:
+            container = Container.instance()
+            self.cache = container.get(self.name)
+
+        return self.cache
+
+    def __set__(self, instance, value):
+        raise RuntimeError("Cannot set an injected service property")
+
+    def __delete__(self, instance):
+        raise RuntimeError("Cannot delete an injected service property")
+
+
+class Inject(object):
     def __init__(self, **services):
         self.services = services
 
@@ -44,15 +66,13 @@ class Inject:
         return Injector(decorated, self.services)
 
 
-class Injector:
+class Injector(object):
     def __init__(self, decorated, services):
         self.decorated = decorated
         self.services = services
 
-    def __call__(self, locator, *args, **kwargs):
-        if locator is not ServiceLocator:
-            raise TypeError("First argument must be an instance of ServiceLocator")
-
+    def __call__(self, *args, **kwargs):
+        locator = Container.instance()
         kwargs.update({attr: locator.get(name) for attr, name in self.services.items()})
         return self.decorated(*args, **kwargs)
 

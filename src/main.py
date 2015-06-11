@@ -1,14 +1,5 @@
-import itertools as it
 import argparse
-from sfml import sf
-from yarl.map.chunk import Chunk
-from yarl.block import *
-from yarl.service import ServiceLocator
-from yarl.view import TileMap, TileAtlas
-from yarl.save import SaveFile
-from yarl.asset import AssetLoader, TexturePool
-from yarl.package import PackageLoader
-
+from yarl.game import Game
 
 if __name__ != "__main__":
     raise RuntimeError("Cannot import this module!")
@@ -21,29 +12,11 @@ args_parser.add_argument('--rebuild', dest='rebuild', default=None)
 args_parser.add_argument('--load', dest='paks', nargs='*', default=[])
 args = args_parser.parse_args()
 
-print("Setting up services ...")
-locator = ServiceLocator.instance()
+Game(args).run()
 
-print("Loader Setup")
-package_loader = PackageLoader(['core.zip'] + args.paks)
-package_loader.load()
-package_loader.hook()
 
-locator.add_instance('engine.package_loader', package_loader)
-locator.add_factory('engine.asset_loader', AssetLoader)
-locator.add_factory('engine.block_registry', BlockRegistry)
-print("Loading Blocks ...")
-registry = BlockRegistry.instance()
-registry.add(VoidBlock)
-registry.add(FloorBlock)
-registry.add(WallBlock)
 
-print("Loading Textures ...")
-tile_atlas = TileAtlas(tex_pool=tex_pool,
-                       size=sf.Vector2(16, 16),
-                       order=16)
-tile_atlas.build(registry)
-
+"""
 print("Loading World ...")
 
 save_file = SaveFile(args.world, 0)
@@ -131,3 +104,4 @@ except Exception as e:
     from traceback import print_tb
     print("=== Exception Occured ===")
     print_tb(e.__traceback__)
+"""

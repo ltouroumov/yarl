@@ -1,4 +1,4 @@
-class BlockRegistry:
+class BlockRegistry(object):
     """
     Registry of all block types
     """
@@ -53,7 +53,7 @@ class BlockRegistry:
             raise KeyError("Cannot find block with ID %s" % block_id)
 
 
-class Block:
+class Block(object):
     """
     Base Block Interface
     """

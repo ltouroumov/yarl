@@ -5,7 +5,7 @@ from yarl.service import Inject
 
 
 @Inject(loader='engine.package_loader')
-class AssetLoader:
+class AssetLoader(object):
     def __init__(self, loader):
         self.loader = loader
 
@@ -29,7 +29,7 @@ class AssetLoader:
         raise KeyError("File not found %s in asset repositories" % file)
 
 
-class TexturePool:
+class TexturePool(object):
     def __init__(self, provider):
         self.provider = provider
         self.textures = dict()

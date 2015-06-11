@@ -1,7 +1,7 @@
 import sqlite3 as sql
 
 
-class SchemaTable:
+class SchemaTable(object):
     def __init__(self, conn):
         self.conn = conn
 
@@ -153,7 +153,7 @@ class EntityTable(SchemaTable):
     insert_sql = "INSERT INTO entities(level_id, type, pos, data) VALUES (:level_id, :type, :pos, :data)"
 
 
-class SaveSchema:
+class SaveSchema(object):
     tables = [
         MetaTable,
         WorldTable,

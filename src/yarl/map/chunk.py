@@ -6,7 +6,7 @@ from yarl.schema import ChunkTable
 import numpy as np
 
 
-class ChunkLoader:
+class ChunkLoader(object):
     def __init__(self, level_id, save_file):
         self.level = level_id
         self.save_file = save_file
@@ -40,7 +40,7 @@ class ChunkLoader:
         return chunk
 
 
-class ChunkTree:
+class ChunkTree(object):
     def __init__(self, origin, size, loader, is_leaf=False):
         self.origin = origin
         self.size = size
@@ -154,7 +154,7 @@ class TileMatrix(np.ndarray):
         return matrix
 
 
-class Chunk:
+class Chunk(object):
     rank = 4
     size = 2 ** rank
 

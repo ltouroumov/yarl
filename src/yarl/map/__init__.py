@@ -3,7 +3,7 @@ from yarl.schema import RegionTable, LevelTable, WorldTable
 from sfml import sf
 
 
-class World:
+class World(object):
     def __init__(self, name, save_file):
         """
         Creates an empty world
@@ -35,7 +35,7 @@ class World:
         return self.regions[name]
 
 
-class Region:
+class Region(object):
     """
     Create an unpopulated region
     """
@@ -65,7 +65,7 @@ class Region:
         return self.levels[name]
 
 
-class Level:
+class Level(object):
     def __init__(self, name, size, region_id, save_file):
         """
         Creates an unpopulated dungeon floor

@@ -1,7 +1,7 @@
 from sfml import sf
 
 
-class TileAtlas:
+class TileAtlas(object):
     def __init__(self, tex_pool, size, order=64):
         self.tex_pool = tex_pool
         self.texture = None
@@ -53,7 +53,7 @@ class TileAtlas:
         return self.texture
 
 
-class TileQuad:
+class TileQuad(object):
     def __init__(self, vertices, index, atlas):
         self.atlas = atlas
         self.index = index

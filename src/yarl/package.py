@@ -9,7 +9,7 @@ from importlib.util import module_for_loader
 import pickle
 
 
-class BaseManifest:
+class BaseManifest(object):
     def __init__(self, file):
         self.manifest_path = file
         with open(file, 'r') as fd:
@@ -124,7 +124,7 @@ class ResourcesManifest(BaseManifest):
             archive.write(file, arcname=name)
 
 
-class PackageIndex:
+class PackageIndex(object):
     """
     Indexes resources inside a package
     Allows test of existence in archive packages and maps keys to files in directory packages
@@ -205,7 +205,7 @@ class PackageManifest(BaseManifest):
         self.index(self.pkindex)
 
 
-class BasePackage:
+class BasePackage(object):
     def __init__(self, location):
         self.location = location
         self.index = PackageIndex()
@@ -262,7 +262,7 @@ class DirectoryPackage(BasePackage):
             raise KeyError("Key %s does not exist in package %s" % (name, self.location))
 
 
-class PackageLoader:
+class PackageLoader(object):
     def __init__(self, packages):
         self.packages = dict.fromkeys(packages)
         self.class_loader = PackagedClassLoader(self)
@@ -292,7 +292,7 @@ class PackageLoader:
         sys.meta_path.append(self.class_loader)
 
 
-class PackagedClassLoader:
+class PackagedClassLoader(object):
     """
     Implements PEP 302 class loading protocol
     """

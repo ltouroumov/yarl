@@ -13,7 +13,7 @@ sql.register_adapter(TileMatrix, TileMatrix.pack)
 sql.register_converter("tilematrix", TileMatrix.unpack)
 
 
-class SaveFile:
+class SaveFile(object):
     def __init__(self, fpath, world_id):
         self.path = fpath
         self.id = world_id
