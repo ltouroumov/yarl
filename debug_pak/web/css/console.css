@@ -1,0 +1,43 @@
+/**
+ * Debug Console Stylesheet
+ */
+
+body {
+    background: black;
+    color: #dddddd;
+}
+
+#script-editor {
+    position: absolute;
+    top: 20px;
+    bottom: 20px;
+    left: 20px;
+    right: 620px;
+    border: 2px solid #dddddd;
+}
+
+#terminal-wrapper {
+    position: absolute;
+    top: 20px;
+    bottom: 20px;
+    right: 20px;
+    width: 580px;
+    border: 2px solid #dddddd;
+}
+
+#logging-terminal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 50%;
+    border-bottom: 2px solid #dddddd;
+}
+
+#repl-terminal {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
