@@ -3,17 +3,71 @@
  */
 
 body {
-    background: black;
-    color: #dddddd;
+    background: #2F3129;
+    color: #8F908A;
 }
 
-#script-editor {
+.btn {
+    display: inline-block;
+    margin: 4px 4px 0 4px;
+    width: 32px;
+    height: 32px;
+}
+
+.divider {
+    display: inline-block;
+    margin: 4px 0;
+    height: 28px;
+    border-left: 1px solid #8F908A;
+}
+
+.btn-run {
+    background: url(icons/run.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+.btn-reload {
+    background: url(icons/reload.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+.btn-pause {
+    background: url(icons/pause.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+.btn-stop {
+    background: url(icons/stop.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+.btn-quit {
+    background: url(icons/quit.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+.btn-clear {
+    background: url(icons/clear.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+
+#script-wrapper {
     position: absolute;
     top: 20px;
     bottom: 20px;
     left: 20px;
     right: 620px;
-    border: 2px solid #dddddd;
+    border: 2px solid #E2E2E2;
+}
+
+#script-toolbar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 36px;
+    background: #494D40;
+}
+
+#script-editor {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 #terminal-wrapper {
@@ -22,7 +76,7 @@ body {
     bottom: 20px;
     right: 20px;
     width: 580px;
-    border: 2px solid #dddddd;
+    border: 2px solid #E2E2E2;
 }
 
 #logging-terminal {
@@ -31,7 +85,7 @@ body {
     left: 0;
     right: 0;
     bottom: 50%;
-    border-bottom: 2px solid #dddddd;
+    border-bottom: 2px solid #E2E2E2;
 }
 
 #repl-terminal {

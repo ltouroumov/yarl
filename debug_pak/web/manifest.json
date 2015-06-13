@@ -1,4 +1,10 @@
 {
     "path": "web",
-    "glob": ["*.html", "js/*.js", "css/*.css"]
+    "glob": [
+        "*.html",
+        "js/*.js",
+        "js/ace/*.js",
+        "css/*.css",
+        "css/icons/*.png"
+    ]
 }

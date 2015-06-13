@@ -52,15 +52,20 @@ class DebugConsole(Thread):
         self.loop = asyncio.get_event_loop()
 
     def run(self):
-        start_server = websockets.serve(self.handler, 'localhost', 8765)
+        @asyncio.coroutine
+        def handler(websocket, path):
+            while True:
+                message = yield from websocket.recv()
+                if message is None:
+                    break
+
+                response = """
+                {"packet_type": "rcon", "payload": "Received message"}
+                """
+                yield from websocket.send(message)
+
+        start_server = websockets.serve(handler, 'localhost', 32081)
 
         asyncio.set_event_loop(self.loop)
-        self.loop.run_until_complete(start_server)
-
-    @asyncio.coroutine
-    def handler(self, websocket, path):
-        while True:
-            message = yield from websocket.recv()
-            if message is None:
-                break
-            print("Debug {} at {}".format(message, path))
+        asyncio.get_event_loop().run_until_complete(start_server)
+        asyncio.get_event_loop().run_forever()

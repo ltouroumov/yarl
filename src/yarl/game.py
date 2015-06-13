@@ -52,7 +52,10 @@ class Game(object):
         container = Container.instance
 
         logger.info("Package Loader")
-        package_loader = PackageLoader(['core.zip'] + self.args.paks)
+        if self.args.load_core:
+            self.args.packs.insert(0, 'core.zip')
+
+        package_loader = PackageLoader(self.args.paks)
         package_loader.load()
         package_loader.hook()
 

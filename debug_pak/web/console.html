@@ -8,8 +8,20 @@
 </head>
 <body>
 
-<div id="script-editor">
-    I'm a script editor
+<div id="script-wrapper">
+    <div id="script-toolbar">
+        <a href="#" data-action="run" class="btn btn-run"></a>
+        <a href="#" data-action="clear" class="btn btn-clear"></a>
+
+        <!--
+        <a href="#" class="btn btn-reload"></a>
+        <span class="divider"></span>
+        <a href="#" class="btn btn-pause"></a>
+        <a href="#" class="btn btn-stop"></a>
+        <a href="#" class="btn btn-quit"></a>
+        -->
+    </div>
+    <div id="script-editor"></div>
 </div>
 
 <div id="terminal-wrapper">
@@ -18,7 +30,9 @@
 </div>
 
 <script src="js/jquery.js"></script>
+<script src="js/ace/ace.js"></script>
 <script src="js/terminal.js"></script>
+<script src="js/rcon.js"></script>
 <script src="js/console.js"></script>
 </body>
 </html>
