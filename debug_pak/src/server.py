@@ -1,9 +1,10 @@
-from socketserver import TCPServer, BaseRequestHandler
 from threading import Thread
 from logging import getLogger, Handler
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from yarl.package import PackageIndex
 from yarl.service import Service
+import websockets
+import asyncio
 
 logger = getLogger(__name__)
 package = Service.get('engine.package_loader').get_from_module(__name__)
@@ -44,26 +45,58 @@ class ConsoleWebInterface(Thread):
         logger.info("Serving console to http://localhost:%s", self.port)
         http_server.serve_forever()
 
-class DebugConsoleHandler(BaseRequestHandler):
-    def __init__(self):
-        self.handler = self.handle_handshake
-
-    def handle_handshake(self, data):
-        pass
-
-    def handle(self):
-        running = True
-        while running:
-            data = self.request.recv(1024).strip()
-            print("got {} from {}".format(data.decode('utf-8'), self.client_address[0]))
-            self.request.sendall(data)
-
-
 class DebugConsole(Thread):
     def __init__(self):
         super().__init__(daemon=True)
         self.port = 32081
 
+        self.loop = asyncio.get_event_loop()
+        self.path_handlers = {
+            '/rcon': self.rcon_handler,
+            '/repl': self.repl_handler,
+            '/log': self.log_handler
+        }
+
+    @asyncio.coroutine
+    def rcon_handler(self, websocket):
+        yield from websocket.send("""{"packet_type": "rcon", "payload": "[[b;#00BF00;]RCON Online]"}""")
+        while True:
+            message = yield from websocket.recv()
+            if message is None:
+                break
+
+            yield from websocket.send(message)
+
+    @asyncio.coroutine
+    def repl_handler(self, websocket):
+        yield from websocket.send("""{"packet_type": "rcon", "payload": "[[b;#00BF00;]REPL Online]"}""")
+        while True:
+            message = yield from websocket.recv()
+            if message is None:
+                break
+
+            yield from websocket.send(message)
+
+    @asyncio.coroutine
+    def log_handler(self, websocket):
+        while True:
+            yield from asyncio.sleep(10)
+
+            response = """{"packet_type": "log", "payload": "Log entry"}"""
+            yield from websocket.send(response)
+
+    @asyncio.coroutine
+    def handler(self, websocket, path):
+        if path in self.path_handlers:
+            handler = self.path_handlers[path]
+            yield from handler(websocket)
+        else:
+            while True:
+                yield from websocket.recv()
+                yield from websocket.send("Unkown channel")
+
     def run(self):
-        tcp_server = TCPServer(('localhost', 32081), DebugConsoleHandler)
-        tcp_server.serve_forever()
+        start_server = websockets.serve(self.handler, 'localhost', 32081)
+        asyncio.set_event_loop(self.loop)
+        asyncio.get_event_loop().run_until_complete(start_server)
+        asyncio.get_event_loop().run_forever()

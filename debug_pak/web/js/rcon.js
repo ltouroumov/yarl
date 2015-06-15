@@ -2,6 +2,7 @@
 
     function DebugClient(address) {
         this.address = address;
+        this.sockets = {};
     }
 
     DebugClient.prototype.setLoggingTerminal = function(term) {
@@ -16,22 +17,30 @@
         this.editor = editor;
     };
 
+    DebugClient.prototype.connect = function(channel) {
+        var socket = new WebSocket(this.address.replace("{channel}", channel));
+        socket.onopen = this.onSocketOpen.bind(this);
+        socket.onclose = this.onSocketClose.bind(this);
+        socket.onmessage = this.onSocketMessage.bind(this);
+        socket.onerror = this.onSocketError.bind(this);
+        return socket;
+    }
+
     DebugClient.prototype.run = function() {
         this.loggingTerminal.echo("[[b;#00BF00;]Connecting to server ...]");
-        this.socket = new WebSocket(this.address);
-        this.socket.onopen = this.onSocketOpen.bind(this);
-        this.socket.onclose = this.onSocketClose.bind(this);
-        this.socket.onmessage = this.onSocketMessage.bind(this);
-        this.socket.onerror = this.onSocketError.bind(this);
+
+        this.sockets['log'] = this.connect("log");
+        this.sockets['rcon'] = this.connect("rcon");
+        this.sockets['repl'] = this.connect("repl");
     };
 
     DebugClient.prototype.onSocketOpen = function(event) {
-        this.loggingTerminal.echo("[[b;#00BF00;]Connected]");
+        this.loggingTerminal.echo("[[b;#00BF00;]Connected to " + event.currentTarget.url + "]");
         console.log(event);
     };
 
     DebugClient.prototype.onSocketClose = function(event) {
-        this.loggingTerminal.echo("[[b;#BE0000;]Server Closed]");
+        this.loggingTerminal.echo("[[b;#BE0000;]Server " + event.currentTarget.url + " Closed]");
         console.log(event);
     };
 
@@ -41,9 +50,14 @@
     };
 
     DebugClient.prototype.onSocketMessage = function(event) {
+        console.log(event);
         var json = JSON.parse(event.data);
+        console.log(json);
 
         switch (json.packet_type) {
+            case 'log':
+                this.loggingTerminal.echo(json.payload);
+                break;
             case 'rcon':
                 this.loggingTerminal.echo(json.payload);
                 break;
@@ -51,16 +65,14 @@
                 this.replTerminal.echo(json.payload);
                 break;
             default:
-                this.loggingTerminal.echo("[[b;red;]Unhandled packet type] " + json.packet_type);
+                this.loggingTerminal.echo("[[b;red;]Unhandled packet type " + json.packet_type + "]");
                 break;
         }
-
-        console.log(event);
     };
 
     DebugClient.prototype.send = function(message, channel) {
         var data = JSON.stringify({ 'channel': channel, 'message': message });
-        this.socket.send(data);
+        this.sockets[channel].send(data);
     };
 
     window.DebugClient = DebugClient;
