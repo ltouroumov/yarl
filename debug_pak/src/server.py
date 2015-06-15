@@ -1,8 +1,12 @@
+from io import StringIO
 from threading import Thread
 from logging import getLogger, Handler
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import sys
 from yarl.package import PackageIndex
 from yarl.service import Service
+from collections import deque
+import json
 import websockets
 import asyncio
 
@@ -27,12 +31,19 @@ class PackagedRequestHandler(BaseHTTPRequestHandler):
             self.send_error(404, "Resource Not Found")
 
 class ConsoleHandler(Handler):
-    def __init__(self, console):
-        super().__init__()
-        self.console = console
+    max_records = 200
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.records = deque(maxlen=self.max_records)
 
     def emit(self, record):
-        pass
+        self.records.append(record)
+
+    def flush(self):
+        pending = list(map(self.format, self.records))
+        self.records.clear()
+        return pending
 
 class ConsoleWebInterface(Thread):
     def __init__(self):
@@ -69,21 +80,46 @@ class DebugConsole(Thread):
 
     @asyncio.coroutine
     def repl_handler(self, websocket):
-        yield from websocket.send("""{"packet_type": "rcon", "payload": "[[b;#00BF00;]REPL Online]"}""")
+        yield from websocket.send("""{"packet_type": "repl", "payload": "[[b;#00BF00;]REPL Online]"}""")
         while True:
             message = yield from websocket.recv()
             if message is None:
                 break
 
+            data = json.loads(message)
+            code = data['message']
+
+            out = StringIO()
+            old_stdout, old_stderr = sys.stdout, sys.stderr
+            sys.stdout, sys.stderr = [out, out]
+            try:
+                exec(code, {}, {})
+            except Exception as ex:
+                out.write("[[b;red;]{}] [[;#FFF;]{}]".format(type(ex).__name__, str(ex)))
+            finally:
+                sys.stdout, sys.stderr = old_stdout, old_stderr
+
+            out.seek(0)
+            out_str = out.read().strip()
+            message = json.dumps({
+                "packet_type": "repl",
+                "payload": out_str if len(out_str) > 0 else "[[i;#0000BF;] No Output]"
+            })
             yield from websocket.send(message)
 
     @asyncio.coroutine
     def log_handler(self, websocket):
+        log_queue = Service.get('debug.console_handler')
         while True:
-            yield from asyncio.sleep(10)
+            entries = log_queue.flush()
+            if len(entries) > 0:
+                response = json.dumps({
+                    "packet_type": "log",
+                    "payload": entries
+                })
+                yield from websocket.send(response)
 
-            response = """{"packet_type": "log", "payload": "Log entry"}"""
-            yield from websocket.send(response)
+            yield from asyncio.sleep(2)
 
     @asyncio.coroutine
     def handler(self, websocket, path):

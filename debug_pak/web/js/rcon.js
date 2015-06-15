@@ -56,7 +56,9 @@
 
         switch (json.packet_type) {
             case 'log':
-                this.loggingTerminal.echo(json.payload);
+                json.payload.forEach(function(item) {
+                    this.loggingTerminal.echo(item);
+                }.bind(this));
                 break;
             case 'rcon':
                 this.loggingTerminal.echo(json.payload);

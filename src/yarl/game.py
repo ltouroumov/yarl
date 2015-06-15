@@ -5,6 +5,7 @@ from yarl.util import apply_seq
 from yarl.service import Container, Service
 import importlib
 import logging
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +49,20 @@ class Game(object):
         self.args = args
 
     def load(self):
+        formatter = logging.Formatter(fmt='[%(asctime)s %(levelname)s in %(name)s] %(message)s',
+                                      datefmt='%I:%M:%S')
+
+        handler = logging.StreamHandler(stream=sys.stdout)
+        handler.setLevel(logging.DEBUG)
+        handler.setFormatter(formatter)
+
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(handler)
+
         logger.info("Setting up services")
         container = Container.instance
+        container.add_instance('engine.default_formatter', formatter)
 
         logger.info("Package Loader")
         if self.args.load_core:

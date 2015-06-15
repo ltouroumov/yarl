@@ -29,6 +29,12 @@ $(function() {
         evt.preventDefault();
     });
 
+    $('.clear-term').click(function(evt) {
+        evt.preventDefault();
+        var target = $(this).data('target');
+        $(target).terminal().clear();
+    })
+
     var editor = ace.edit("script-editor");
     editor.setTheme('ace/theme/monokai');
     editor.getSession().setMode('ace/mode/python');
