@@ -116,6 +116,8 @@ class Game(object):
             # create the main window
             width, height = map(int, self.args.video_mode.split(':'))
             window = sf.RenderWindow(sf.VideoMode(width, height), "pySFML Window")
+            window.setVerticalSyncEnabled(True)
+            window.setFramerateLimit(30)
 
             # tile_map = TileMap(size=sf.Vector2(9, 9),
             #                    atlas=tile_atlas)

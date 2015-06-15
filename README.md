@@ -22,7 +22,7 @@ Other tiles are from [OpenGameArt](opengameart.org). License file and tileset na
 send me a mesage if you know!
 
 ## What is the license for the code?
-The engine code (everything under "src/") is provided under public domain license (see LICENSE file).
+The engine code (everything under "src/" and "debug_pak") is provided under public domain license (see LICENSE file).
 
 The game code (everything else unless specified) is provided under the following rules:
   

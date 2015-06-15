@@ -1,10 +1,9 @@
+from socketserver import TCPServer, BaseRequestHandler
 from threading import Thread
 from logging import getLogger, Handler
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from yarl.package import PackageIndex
 from yarl.service import Service
-import asyncio
-import websockets
 
 logger = getLogger(__name__)
 package = Service.get('engine.package_loader').get_from_module(__name__)
@@ -45,27 +44,26 @@ class ConsoleWebInterface(Thread):
         logger.info("Serving console to http://localhost:%s", self.port)
         http_server.serve_forever()
 
+class DebugConsoleHandler(BaseRequestHandler):
+    def __init__(self):
+        self.handler = self.handle_handshake
+
+    def handle_handshake(self, data):
+        pass
+
+    def handle(self):
+        running = True
+        while running:
+            data = self.request.recv(1024).strip()
+            print("got {} from {}".format(data.decode('utf-8'), self.client_address[0]))
+            self.request.sendall(data)
+
+
 class DebugConsole(Thread):
     def __init__(self):
         super().__init__(daemon=True)
         self.port = 32081
-        self.loop = asyncio.get_event_loop()
 
     def run(self):
-        @asyncio.coroutine
-        def handler(websocket, path):
-            while True:
-                message = yield from websocket.recv()
-                if message is None:
-                    break
-
-                response = """
-                {"packet_type": "rcon", "payload": "Received message"}
-                """
-                yield from websocket.send(message)
-
-        start_server = websockets.serve(handler, 'localhost', 32081)
-
-        asyncio.set_event_loop(self.loop)
-        asyncio.get_event_loop().run_until_complete(start_server)
-        asyncio.get_event_loop().run_forever()
+        tcp_server = TCPServer(('localhost', 32081), DebugConsoleHandler)
+        tcp_server.serve_forever()
