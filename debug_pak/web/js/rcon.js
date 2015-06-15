@@ -16,13 +16,21 @@
         this.editor = editor;
     };
 
+    DebugClient.prototype.connect = function(channel) {
+        var socket = new WebSocket(this.address.replace("{channel}", channel));
+        socket.onopen = this.onSocketOpen.bind(this);
+        socket.onclose = this.onSocketClose.bind(this);
+        socket.onmessage = this.onSocketMessage.bind(this);
+        socket.onerror = this.onSocketError.bind(this);
+        return socket;
+    }
+
     DebugClient.prototype.run = function() {
         this.loggingTerminal.echo("[[b;#00BF00;]Connecting to server ...]");
-        this.socket = new WebSocket(this.address);
-        this.socket.onopen = this.onSocketOpen.bind(this);
-        this.socket.onclose = this.onSocketClose.bind(this);
-        this.socket.onmessage = this.onSocketMessage.bind(this);
-        this.socket.onerror = this.onSocketError.bind(this);
+
+        this.log_socket = this.connect("log");
+        this.rcon_socket = this.connect("rcon");
+        this.repl_socket = this.connect("repl");
     };
 
     DebugClient.prototype.onSocketOpen = function(event) {
@@ -41,9 +49,13 @@
     };
 
     DebugClient.prototype.onSocketMessage = function(event) {
+        console.log(event);
         var json = JSON.parse(event.data);
 
         switch (json.packet_type) {
+            case 'log':
+                this.loggingTerminal.echo(json.payload);
+                break;
             case 'rcon':
                 this.loggingTerminal.echo(json.payload);
                 break;

@@ -50,22 +50,56 @@ class DebugConsole(Thread):
         super().__init__(daemon=True)
         self.port = 32081
         self.loop = asyncio.get_event_loop()
+        self.path_handlers = {
+            '/rcon': self.rcon_handler,
+            '/repl': self.repl_handler,
+            '/log': self.log_handler
+        }
+
+    def rcon_handler(self, websocket):
+        yield from websocket.send("""{"packet_type": "rcon", "payload": "[[b;green;]RCON Online]"}""")
+        while True:
+            message = yield from websocket.recv()
+            if message is None:
+                break
+
+            response = """
+            {"packet_type": "rcon", "payload": "Received message"}
+            """
+            yield from websocket.send(message)
+
+    def repl_handler(self, websocket):
+        yield from websocket.send("""{"packet_type": "rcon", "payload": "[[b;green;]REPL Online]"}""")
+        while True:
+            message = yield from websocket.recv()
+            if message is None:
+                break
+
+            response = """
+            {"packet_type": "rcon", "payload": "Received message"}
+            """
+            yield from websocket.send(message)
+
+    def log_handler(self, websocket):
+        while True:
+            yield from asyncio.wait(1)
+
+            response = """
+            {"packet_type": "log", "payload": "Log entry"}
+            """
+            yield from websocket.send(response)
+
+    @asyncio.coroutine
+    def handler(self, websocket, path):
+        print(path)
+        if path in self.path_handlers:
+            handler = self.path_handlers[path]
+            handler(websocket)
+        else:
+            yield from websocket.send("Unkown channel")
 
     def run(self):
-        @asyncio.coroutine
-        def handler(websocket, path):
-            while True:
-                message = yield from websocket.recv()
-                if message is None:
-                    break
-
-                response = """
-                {"packet_type": "rcon", "payload": "Received message"}
-                """
-                yield from websocket.send(message)
-
-        start_server = websockets.serve(handler, 'localhost', 32081)
-
+        start_server = websockets.serve(self.handler, 'localhost', 32081)
         asyncio.set_event_loop(self.loop)
         asyncio.get_event_loop().run_until_complete(start_server)
         asyncio.get_event_loop().run_forever()

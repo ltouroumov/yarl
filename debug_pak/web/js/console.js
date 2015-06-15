@@ -1,6 +1,6 @@
 $(function() {
 
-    rcon = new DebugClient('ws://localhost:32081');
+    rcon = new DebugClient('ws://localhost:32081/{channel}');
 
     console.log("Loaded");
 
