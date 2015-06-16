@@ -4,7 +4,6 @@ from yarl.game import Game
 if __name__ != "__main__":
     raise RuntimeError("Cannot import this module!")
 
-
 args_parser = argparse.ArgumentParser()
 args_parser.add_argument('--video-mode', dest='video_mode', default='640:480')
 args_parser.add_argument('--world', dest='world', default='world')

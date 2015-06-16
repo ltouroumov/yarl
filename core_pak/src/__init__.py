@@ -1,5 +1,7 @@
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class Bootstrap:
     def __init__(self):

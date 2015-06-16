@@ -11,6 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class BaseManifest(object):
     def __init__(self, file):
         self.manifest_path = file
@@ -114,9 +115,9 @@ class ResourcesManifest(BaseManifest):
 
     def resources(self):
         for pattern in self.glob:
-                for file in glob.glob(join(self.base, pattern)):
-                    name = join(self.path, relpath(file, self.base))
-                    yield (name, file)
+            for file in glob.glob(join(self.base, pattern)):
+                name = join(self.path, relpath(file, self.base))
+                yield (name, file)
 
     def index(self, index):
         for name, file in self.resources():
@@ -179,6 +180,7 @@ class PackageManifest(BaseManifest):
     """
     Processes a top-level manifest.json from a package
     """
+
     def __init__(self, file):
         super().__init__(file)
         self.name = self.manifest['name']
@@ -299,6 +301,7 @@ class PackageLoader(object):
         Hook class loader to meta_path
         """
         import sys
+
         sys.meta_path.append(self.class_loader)
 
 
@@ -306,6 +309,7 @@ class PackagedClassLoader(object):
     """
     Implements PEP 302 class loading protocol
     """
+
     def __init__(self, loader):
         self.loader = loader
         self.modules = dict()

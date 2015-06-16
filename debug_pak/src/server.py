@@ -13,6 +13,23 @@ import asyncio
 logger = getLogger(__name__)
 package = Service.get('engine.package_loader').get_from_module(__name__)
 
+
+class ConsoleHandler(Handler):
+    max_records = 200
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.records = deque(maxlen=self.max_records)
+
+    def emit(self, record):
+        self.records.append(record)
+
+    def flush(self):
+        pending = list(map(self.format, self.records))
+        self.records.clear()
+        return pending
+
+
 class PackagedRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         logger.info("Getting %s", self.path)
@@ -30,20 +47,6 @@ class PackagedRequestHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, "Resource Not Found")
 
-class ConsoleHandler(Handler):
-    max_records = 200
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.records = deque(maxlen=self.max_records)
-
-    def emit(self, record):
-        self.records.append(record)
-
-    def flush(self):
-        pending = list(map(self.format, self.records))
-        self.records.clear()
-        return pending
 
 class ConsoleWebInterface(Thread):
     def __init__(self):
@@ -56,7 +59,8 @@ class ConsoleWebInterface(Thread):
         logger.info("Serving console to http://localhost:%s", self.port)
         http_server.serve_forever()
 
-class DebugConsole(Thread):
+
+class DebugConsoleServer(Thread):
     def __init__(self):
         super().__init__(daemon=True)
         self.port = 32081

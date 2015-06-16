@@ -24,7 +24,7 @@
         socket.onmessage = this.onSocketMessage.bind(this);
         socket.onerror = this.onSocketError.bind(this);
         return socket;
-    }
+    };
 
     DebugClient.prototype.run = function() {
         this.loggingTerminal.echo("[[b;#00BF00;]Connecting to server ...]");
@@ -35,12 +35,12 @@
     };
 
     DebugClient.prototype.onSocketOpen = function(event) {
-        this.loggingTerminal.echo("[[b;#00BF00;]Connected to " + event.currentTarget.url + "]");
+        //this.loggingTerminal.echo("[[b;#00BF00;]Connected to " + event.currentTarget.url + "]");
         console.log(event);
     };
 
     DebugClient.prototype.onSocketClose = function(event) {
-        this.loggingTerminal.echo("[[b;#BE0000;]Server " + event.currentTarget.url + " Closed]");
+        this.loggingTerminal.echo("[[b;#BE0000;]Connection to " + event.currentTarget.url + " Closed]");
         console.log(event);
     };
 

@@ -1,6 +1,7 @@
 import asyncio
 import websockets
 
+
 @asyncio.coroutine
 def handler(websocket, path):
     print("Handling connection")
@@ -12,6 +13,7 @@ def handler(websocket, path):
 
         print("Debug {} at {}".format(message, path))
         yield from websocket.send(message)
+
 
 start_server = websockets.serve(handler, 'localhost', 32081)
 

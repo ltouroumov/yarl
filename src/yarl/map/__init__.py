@@ -39,6 +39,7 @@ class Region(object):
     """
     Create an unpopulated region
     """
+
     def __init__(self, name, size, world_id, save_file):
         self.id = None
         self.world_id = world_id

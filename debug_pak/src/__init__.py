@@ -4,8 +4,10 @@ from yarl.debug.server import ConsoleWebInterface, DebugConsole, ConsoleHandler
 
 logger = logging.getLogger(__name__)
 
+
 def websocket_filter(record):
     return record.name not in ['websockets.protocol', 'yarl.debug.server']
+
 
 class Bootstrap(object):
     container = Service('service_container')

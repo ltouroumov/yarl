@@ -2,6 +2,7 @@ class BlockRegistry(object):
     """
     Registry of all block types
     """
+
     def __init__(self):
         self.id_map = None
         self.blocks = dict()
@@ -57,6 +58,7 @@ class Block(object):
     """
     Base Block Interface
     """
+
     def __init__(self):
         self.icons = dict()
 

@@ -9,6 +9,7 @@ import sys
 
 logger = logging.getLogger(__name__)
 
+
 class GameBootstrap(object):
     package_loader = Service('engine.package_loader')
 
@@ -44,6 +45,7 @@ class ThreadRunner(object):
     def start(self):
         apply_seq(self.threads, 'start')
 
+
 class Game(object):
     def __init__(self, args):
         self.args = args
@@ -56,9 +58,9 @@ class Game(object):
         handler.setLevel(logging.DEBUG)
         handler.setFormatter(formatter)
 
-        logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(handler)
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.DEBUG)
+        root_logger.addHandler(handler)
 
         logger.info("Setting up services")
         container = Container.instance
@@ -88,6 +90,7 @@ class Game(object):
         thread_runner.start()
 
         from sfml import sf
+
         """
         print("Loading World ...")
 
@@ -149,20 +152,20 @@ class Game(object):
                     if type(event) is sf.KeyEvent:
                         if event.code == sf.Keyboard.Q:
                             window.close()
-                        # elif event.code == sf.Keyboard.W:
-                        #     map_center += sf.Vector2(0, 1)
-                        #     tile_map.update(level, map_center)
-                        # elif event.code == sf.Keyboard.S:
-                        #     map_center += sf.Vector2(0, -1)
-                        #     tile_map.update(level, map_center)
-                        # elif event.code == sf.Keyboard.A:
-                        #     map_center += sf.Vector2(-1, 0)
-                        #     tile_map.update(level, map_center)
-                        # elif event.code == sf.Keyboard.D:
-                        #     map_center += sf.Vector2(1, 0)
-                        #     tile_map.update(level, map_center)
-                        # elif event.code == sf.Keyboard.R:
-                        #     tile_map.update(level, map_center)
+                            # elif event.code == sf.Keyboard.W:
+                            #     map_center += sf.Vector2(0, 1)
+                            #     tile_map.update(level, map_center)
+                            # elif event.code == sf.Keyboard.S:
+                            #     map_center += sf.Vector2(0, -1)
+                            #     tile_map.update(level, map_center)
+                            # elif event.code == sf.Keyboard.A:
+                            #     map_center += sf.Vector2(-1, 0)
+                            #     tile_map.update(level, map_center)
+                            # elif event.code == sf.Keyboard.D:
+                            #     map_center += sf.Vector2(1, 0)
+                            #     tile_map.update(level, map_center)
+                            # elif event.code == sf.Keyboard.R:
+                            #     tile_map.update(level, map_center)
 
                 window.clear()  # clear screen
                 # window.draw(tile_map)
@@ -176,5 +179,6 @@ class Game(object):
 
         except Exception as e:
             from traceback import print_tb
+
             print("=== Exception Occured ===")
             print_tb(e.__traceback__)
