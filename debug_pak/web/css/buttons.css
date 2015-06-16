@@ -1,0 +1,76 @@
+/**
+ * Source: iconfinder.com
+ * iconset:super-mono-reflection
+ * License CC 3.0 Attribution
+ */
+
+.btn {
+    flex: 0 32px;
+
+    display: inline-block;
+    margin: 4px 4px 0 4px;
+    width: 32px;
+    height: 32px;
+}
+
+.divider {
+    flex: 0 2px;
+    display: inline-block;
+    margin: 4px 0;
+    height: 28px;
+    border-left: 1px solid #8F908A;
+    box-sizing: border-box;
+}
+
+.fill {
+    flex: 2 auto;
+    display: inline-block;
+    margin: 4px 0;
+    height: 28px;
+}
+
+.label {
+    flex: 0 auto;
+    display: inline-block;
+    margin: 4px;
+    height: 28px;
+    line-height: 28px;
+}
+
+.btn-run {
+    background: url(icons/run.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+.btn-pause {
+    background: url(icons/pause.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+.btn-stop {
+    background: url(icons/stop.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+
+.btn-file-library {
+    background: url(icons/file-library.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+
+.btn-file-load {
+    background: url(icons/file-load.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+
+.btn-file-save {
+    background: url(icons/file-save.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+
+.btn-file-del {
+    background: url(icons/file-remove.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+
+.btn-file-reload {
+    background: url(icons/file-reload.png) no-repeat transparent;
+    background-size: 32px 32px;
+}

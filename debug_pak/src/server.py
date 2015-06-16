@@ -101,7 +101,7 @@ class DebugConsoleServer(Thread):
 
             message = json.dumps({
                 "packet_type": "repl",
-                "payload": out_str if len(out_str) > 0 else "[[i;#0000BF;] No Output]"
+                "payload": out_str
             })
             yield from websocket.send(message)
 

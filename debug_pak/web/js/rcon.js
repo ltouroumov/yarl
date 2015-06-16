@@ -61,7 +61,8 @@
                 }.bind(this));
                 break;
             case 'rcon':
-                this.loggingTerminal.echo(json.payload);
+                if (json.payload)
+                    this.loggingTerminal.echo(json.payload);
                 break;
             case 'repl':
                 this.replTerminal.echo(json.payload);

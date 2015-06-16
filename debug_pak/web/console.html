@@ -5,34 +5,36 @@
     <title>Debug Console</title>
     <link rel="stylesheet" type="text/css" href="css/terminal.css" />
     <link rel="stylesheet" type="text/css" href="css/console.css" />
+    <link rel="stylesheet" type="text/css" href="css/buttons.css" />
 </head>
 <body>
 
-<div id="script-wrapper">
-    <div id="script-toolbar">
-        <a href="#" data-action="run" class="btn btn-run"></a>
-        <a href="#" data-action="clear" class="btn btn-clear"></a>
+<div id="debugger">
+    <div id="script-wrapper">
+        <div id="script-toolbar">
+            <a href="#" class="btn btn-run"></a>
+            <!-- <a href="#" class="btn btn-pause"></a>
+            <a href="#" class="btn btn-stop"></a>
+            <span class="divider"></span> -->
 
-        <!--
-        <a href="#" class="btn btn-reload"></a>
-        <span class="divider"></span>
-        <a href="#" class="btn btn-pause"></a>
-        <a href="#" class="btn btn-stop"></a>
-        <a href="#" class="btn btn-quit"></a>
-        -->
+            <span class="fill"></span>
+            <a href="#" class="btn btn-file-save"></a>
+            <a href="#" class="btn btn-file-load"></a>
+            <span class="label">
+                <select id="file-library">
+                </select>
+            </span>
+            <a href="#" class="btn btn-file-del"></a>
+        </div>
+        <div id="script-editor"></div>
     </div>
-    <div id="script-editor"></div>
+    <div id="terminal-wrapper">
+        <div id="logging-terminal">
+        </div>
+        <div id="repl-terminal">
+        </div>
+    </div>
 </div>
-
-<div id="terminal-wrapper">
-    <div id="logging-terminal">
-        <a href="#" data-target="#logging-terminal" class="clear-term"></a>
-    </div>
-    <div id="repl-terminal">
-        <a href="#" data-target="#repl-terminal" class="clear-term"></a>
-    </div>
-</div>
-
 <script src="js/jquery.js"></script>
 <script src="js/ace/ace.js"></script>
 <script src="js/terminal.js"></script>

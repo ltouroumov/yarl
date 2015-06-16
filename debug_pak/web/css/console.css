@@ -2,105 +2,84 @@
  * Debug Console Stylesheet
  */
 
+html, body {
+    height: 100%;
+}
+
 body {
     background: #2F3129;
     color: #8F908A;
+    margin: 0;
+    padding: 0;
 }
 
-.clear-term {
-    display: block;
-    float: right;
-    width: 32px;
-    height: 32px;
-    background: url(icons/clear.png) no-repeat transparent;
-    background-size: 32px 32px;
-}
-
-.btn {
-    display: inline-block;
-    margin: 4px 4px 0 4px;
-    width: 32px;
-    height: 32px;
-}
-
-.divider {
-    display: inline-block;
-    margin: 4px 0;
-    height: 28px;
-    border-left: 1px solid #8F908A;
-}
-
-.btn-run {
-    background: url(icons/run.png) no-repeat transparent;
-    background-size: 32px 32px;
-}
-.btn-reload {
-    background: url(icons/reload.png) no-repeat transparent;
-    background-size: 32px 32px;
-}
-.btn-pause {
-    background: url(icons/pause.png) no-repeat transparent;
-    background-size: 32px 32px;
-}
-.btn-stop {
-    background: url(icons/stop.png) no-repeat transparent;
-    background-size: 32px 32px;
-}
-.btn-quit {
-    background: url(icons/quit.png) no-repeat transparent;
-    background-size: 32px 32px;
-}
-.btn-clear {
-    background: url(icons/clear.png) no-repeat transparent;
-    background-size: 32px 32px;
+#debugger {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    align-content: stretch;
 }
 
 #script-wrapper {
-    position: absolute;
-    top: 20px;
-    bottom: 20px;
-    left: 20px;
-    right: 620px;
-    border: 2px solid #E2E2E2;
+    flex: 1 100%;
+    /* border: 2px solid #E2E2E2; */
+    position: relative;
+}
+
+#terminal-wrapper {
+    flex: 1 600px;
+
+    border-left: 2px solid #E2E2E2;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    align-content: stretch;
 }
 
 #script-toolbar {
-    position: absolute;
-    top: 0; left: 0; right: 0;
+    /*position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;*/
     height: 36px;
     background: #494D40;
+    line-height: 100%;
+
+    display: flex;
+    flex-direction: row;
+    align-content: flex-start;
+    justify-content: flex-start;
+}
+
+#file-library {
+    width: 160px;
+    height: 32px;
 }
 
 #script-editor {
     position: absolute;
-    top: 40px;
+    top: 36px;
     left: 0;
     right: 0;
     bottom: 0;
 }
 
-#terminal-wrapper {
-    position: absolute;
-    top: 20px;
-    bottom: 20px;
-    right: 20px;
-    width: 580px;
-    border: 2px solid #E2E2E2;
-}
-
 #logging-terminal {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 50%;
+    flex: 1 100%;
+    min-height: 200px;
+
+    overflow: auto;
+
+    box-sizing: border-box;
     border-bottom: 2px solid #E2E2E2;
 }
 
 #repl-terminal {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    flex: 1 100%;
+    min-height: 200px;
+
+    overflow: auto;
 }
