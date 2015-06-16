@@ -1,6 +1,7 @@
 import logging
 from yarl.service import Service
-from yarl.debug.server import ConsoleWebInterface, DebugConsole, ConsoleHandler
+from yarl.debug.server import ConsoleWebInterface, DebugConsoleServer, ConsoleHandler
+from yarl.debug.repl import DebugInterpreter
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +25,10 @@ class Bootstrap(object):
         debug_handler.addFilter(websocket_filter)
         self.container.add_instance('debug.console_handler', debug_handler)
 
+        self.container.add_factory('debug.interpreter', DebugInterpreter)
+
         root_logger = logging.getLogger()
         root_logger.addHandler(debug_handler)
 
         self.thread_runner.register(ConsoleWebInterface())
-        self.thread_runner.register(DebugConsole())
+        self.thread_runner.register(DebugConsoleServer())

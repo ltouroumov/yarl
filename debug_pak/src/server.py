@@ -84,6 +84,7 @@ class DebugConsoleServer(Thread):
 
     @asyncio.coroutine
     def repl_handler(self, websocket):
+        interpreter = Service.get('debug.interpreter')
         yield from websocket.send("""{"packet_type": "repl", "payload": "[[b;#00BF00;]REPL Online]"}""")
         while True:
             message = yield from websocket.recv()
@@ -91,20 +92,13 @@ class DebugConsoleServer(Thread):
                 break
 
             data = json.loads(message)
-            code = data['message']
+            repl = data['message']['repl']
+            code = data['message']['code']
+            if repl:
+                out_str = interpreter.run_repl(code)
+            else:
+                out_str = interpreter.run_code(code)
 
-            out = StringIO()
-            old_stdout, old_stderr = sys.stdout, sys.stderr
-            sys.stdout, sys.stderr = [out, out]
-            try:
-                exec(code, {}, {})
-            except Exception as ex:
-                out.write("[[b;red;]{}] [[;#FFF;]{}]".format(type(ex).__name__, str(ex)))
-            finally:
-                sys.stdout, sys.stderr = old_stdout, old_stderr
-
-            out.seek(0)
-            out_str = out.read().strip()
             message = json.dumps({
                 "packet_type": "repl",
                 "payload": out_str if len(out_str) > 0 else "[[i;#0000BF;] No Output]"

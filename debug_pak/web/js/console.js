@@ -16,7 +16,7 @@ $(function() {
 
     $('#repl-terminal').terminal(function(cmd, term) {
         console.log("repl: " + cmd);
-        rcon.send(cmd, 'repl');
+        rcon.send({'repl': false, 'code': cmd}, 'repl');
     }, {
         prompt: 'repl> ',
         greetings: false,
@@ -33,14 +33,15 @@ $(function() {
         evt.preventDefault();
         var target = $(this).data('target');
         $(target).terminal().clear();
-    })
+    });
 
     var editor = ace.edit("script-editor");
     editor.setTheme('ace/theme/monokai');
     editor.getSession().setMode('ace/mode/python');
 
     $('.btn-run').click(function(evt) {
-        console.log(this);
+        var text = editor.getSession().getDocument().getValue();
+        rcon.send({'repl': false, 'code': text}, 'repl');
     });
     $('.btn-clear').click(function(evt) {
         console.log(this);
