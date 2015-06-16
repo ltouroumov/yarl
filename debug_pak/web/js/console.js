@@ -15,8 +15,11 @@ $(function() {
 
     var rcon = new DebugClient('ws://localhost:32081/{channel}');
 
-    $('#logging-terminal').terminal(function(cmd, term) {
-        rcon.send(cmd, 'rcon');
+    $('#logging-terminal').find('.term').terminal(function(cmd, term) {
+        if (cmd == '.clear')
+            term.clear();
+        else
+            rcon.send(cmd, 'rcon');
     }, {
         prompt: 'rcon> ',
         greetings: false,
@@ -25,9 +28,11 @@ $(function() {
         }
     });
 
-    $('#repl-terminal').terminal(function(cmd, term) {
-        console.log("repl: " + cmd);
-        rcon.send({'repl': false, 'code': cmd}, 'repl');
+    $('#repl-terminal').find('.term').terminal(function(cmd, term) {
+        if (cmd == '.clear')
+            term.clear();
+        else
+            rcon.send({'repl': false, 'code': cmd}, 'repl');
     }, {
         prompt: 'repl> ',
         greetings: false,
@@ -40,7 +45,7 @@ $(function() {
         evt.preventDefault();
     });
 
-    $('.clear-term').click(function(evt) {
+    $('.btn-term-clear').click(function(evt) {
         evt.preventDefault();
         var target = $(this).data('target');
         $(target).terminal().clear();
@@ -75,7 +80,6 @@ $(function() {
         localStorage.removeItem(name);
         reloadLibrary();
     });
-
 
     reloadLibrary();
 

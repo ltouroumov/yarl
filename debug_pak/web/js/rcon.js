@@ -65,7 +65,10 @@
                     this.loggingTerminal.echo(json.payload);
                 break;
             case 'repl':
-                this.replTerminal.echo(json.payload);
+                if (json.payload)
+                    this.replTerminal.echo(json.payload);
+                else
+                    this.replTerminal.echo("[[;green;]Execution succesful");
                 break;
             default:
                 this.loggingTerminal.echo("[[b;red;]Unhandled packet type " + json.packet_type + "]");

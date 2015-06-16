@@ -11,7 +11,7 @@
 
 <div id="debugger">
     <div id="script-wrapper">
-        <div id="script-toolbar">
+        <div class="toolbar">
             <a href="#" class="btn btn-run"></a>
             <!-- <a href="#" class="btn btn-pause"></a>
             <a href="#" class="btn btn-stop"></a>
@@ -30,8 +30,18 @@
     </div>
     <div id="terminal-wrapper">
         <div id="logging-terminal">
+            <div class="toolbar">
+                <span class="fill"></span>
+                <a href="#" data-target="#logging-terminal .term" class="btn btn-term-clear"></a>
+            </div>
+            <div class="term"></div>
         </div>
         <div id="repl-terminal">
+            <div class="toolbar">
+                <span class="fill"></span>
+                <a href="#" data-target="#repl-terminal .term" class="btn btn-term-clear"></a>
+            </div>
+            <div class="term"></div>
         </div>
     </div>
 </div>

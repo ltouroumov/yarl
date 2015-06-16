@@ -4,6 +4,21 @@
  * License CC 3.0 Attribution
  */
 
+.toolbar {
+    /*position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;*/
+    height: 36px;
+    background: #494D40;
+    line-height: 100%;
+
+    display: flex;
+    flex-direction: row;
+    align-content: flex-start;
+    justify-content: flex-start;
+}
+
 .btn {
     flex: 0 32px;
 
@@ -72,5 +87,10 @@
 
 .btn-file-reload {
     background: url(icons/file-reload.png) no-repeat transparent;
+    background-size: 32px 32px;
+}
+
+.btn-term-clear {
+    background: url(icons/term-clear.png) no-repeat transparent;
     background-size: 32px 32px;
 }

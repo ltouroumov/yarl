@@ -39,21 +39,6 @@ body {
     align-content: stretch;
 }
 
-#script-toolbar {
-    /*position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;*/
-    height: 36px;
-    background: #494D40;
-    line-height: 100%;
-
-    display: flex;
-    flex-direction: row;
-    align-content: flex-start;
-    justify-content: flex-start;
-}
-
 #file-library {
     width: 160px;
     height: 32px;
@@ -68,18 +53,33 @@ body {
 }
 
 #logging-terminal {
-    flex: 1 100%;
+    flex: 1 200px;
     min-height: 200px;
-
-    overflow: auto;
-
     box-sizing: border-box;
     border-bottom: 2px solid #E2E2E2;
+    position: relative;
+}
+
+#logging-terminal .term {
+    overflow: auto;
+    position: absolute;
+    top: 36px;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 #repl-terminal {
-    flex: 1 100%;
+    flex: 1 200px;
     min-height: 200px;
+    position: relative;
+}
 
+#repl-terminal .term {
     overflow: auto;
+    position: absolute;
+    top: 36px;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }

@@ -108,6 +108,7 @@ class DebugConsoleServer(Thread):
     @asyncio.coroutine
     def log_handler(self, websocket):
         log_queue = Service.get('debug.console_handler')
+        yield from websocket.send("""{"packet_type": "rcon", "payload": "[[b;#00BF00;]LOG Online]"}""")
         while True:
             entries = log_queue.flush()
             if len(entries) > 0:

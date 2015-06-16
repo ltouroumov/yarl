@@ -6,7 +6,6 @@ from collections import namedtuple
 import os
 from os.path import join, isdir, basename, realpath, relpath
 from importlib.util import module_for_loader
-import pickle
 import logging
 
 logger = logging.getLogger(__name__)
@@ -172,8 +171,8 @@ class PackageIndex(object):
     def json(self):
         return json.dumps({'loaders': {name: info for name, info in self.loaders.items()},
                            'modules': {name: meta for name, (path, meta) in self.modules.items()},
-                           'tilesets': {name: meta for name, (path, meta) in self.modules.items()},
-                           'resources': {name: meta for name, (path, meta) in self.modules.items()}})
+                           'tilesets': {name: meta for name, (path, meta) in self.tilesets.items()},
+                           'resources': {name: meta for name, (path, meta) in self.resources.items()}})
 
 
 class PackageManifest(BaseManifest):
