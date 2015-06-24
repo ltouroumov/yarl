@@ -2,14 +2,19 @@
   "name": "objects",
   "tilesets": [
     {
-      "name": "floor",
-      "texture": "Floor.png",
-      "size": "16x16"
+      "name": "base",
+      "texture": "base.png",
+      "map": "base.map.json"
     },
     {
-      "name": "wall",
-      "texture": "Wall.png",
-      "size": "16x16"
+      "name": "cave",
+      "texture": "cave.png",
+      "map": "cave.map.json"
+    },
+    {
+      "name": "indoor",
+      "texture": "indoor.png",
+      "map": "indoor.map.json"
     }
   ]
 }
