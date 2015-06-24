@@ -1,6 +1,7 @@
 from yarl.asset import AssetLoader
 from yarl.block import BlockRegistry
 from yarl.package import PackageLoader
+from yarl.scene import SceneGraph
 from yarl.util import apply_seq
 from yarl.service import Container, Service
 import importlib
@@ -78,6 +79,7 @@ class Game(object):
         container.add_factory('engine.asset_loader', AssetLoader)
         container.add_factory('engine.block_registry', BlockRegistry)
         container.add_factory('engine.thread_runner', ThreadRunner)
+        container.add_factory('engine.scene_graph', SceneGraph)
 
     def boot(self):
         GameBootstrap().load()
@@ -86,8 +88,11 @@ class Game(object):
         self.load()
         self.boot()
 
-        thread_runner = Container.instance.get('engine.thread_runner')
+        thread_runner = Service.get('engine.thread_runner')
         thread_runner.start()
+
+        scene_graph = Service.get('engine.scene_graph')
+        message_bus = Service.get('engine.message_bus')
 
         from sfml import sf
 
@@ -168,12 +173,9 @@ class Game(object):
                             #     tile_map.update(level, map_center)
 
                 window.clear()  # clear screen
-                # window.draw(tile_map)
 
-                # Display tile map
-                # spr = sf.Sprite(tile_atlas.texture)
-                # spr.position = sf.Vector2(256 + 32, 0)
-                # window.draw(spr)
+                scene_graph.update()
+                scene_graph.display(window)
 
                 window.display()  # update the window
 
