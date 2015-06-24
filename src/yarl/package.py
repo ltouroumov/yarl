@@ -32,7 +32,7 @@ class AssetsManifest(BaseManifest):
     Assets can be optimized during compilation
     """
 
-    Tileset = namedtuple('Tileset', ['name', 'texture', 'size'])
+    Tileset = namedtuple('Tileset', ['name', 'texture', 'map'])
 
     def __init__(self, file):
         super().__init__(file)

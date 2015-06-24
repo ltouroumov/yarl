@@ -4,17 +4,17 @@
     {
       "name": "player",
       "texture": "Player0.png",
-      "size": "16x16"
+      "map": null
     },
     {
       "name": "elemental",
       "texture": "Elemental0.png",
-      "size": "16x16"
+      "map": null
     },
     {
       "name": "misc",
       "texture": "Misc0.png",
-      "size": "16x16"
+      "map": null
     }
   ]
 }

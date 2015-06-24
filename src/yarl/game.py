@@ -1,5 +1,6 @@
 from yarl.asset import AssetLoader
 from yarl.block import BlockRegistry
+from yarl.message import MessageBus
 from yarl.package import PackageLoader
 from yarl.scene import SceneGraph
 from yarl.util import apply_seq
@@ -80,6 +81,7 @@ class Game(object):
         container.add_factory('engine.block_registry', BlockRegistry)
         container.add_factory('engine.thread_runner', ThreadRunner)
         container.add_factory('engine.scene_graph', SceneGraph)
+        container.add_factory('engine.message_bus', MessageBus)
 
     def boot(self):
         GameBootstrap().load()
@@ -91,7 +93,7 @@ class Game(object):
         thread_runner = Service.get('engine.thread_runner')
         thread_runner.start()
 
-        scene_graph = Service.get('engine.scene_graph')
+        # scene_graph = Service.get('engine.scene_graph')
         message_bus = Service.get('engine.message_bus')
 
         from sfml import sf
@@ -154,33 +156,16 @@ class Game(object):
                     if type(event) is sf.CloseEvent:
                         window.close()
 
-                    if type(event) is sf.KeyEvent:
-                        if event.code == sf.Keyboard.Q:
-                            window.close()
-                            # elif event.code == sf.Keyboard.W:
-                            #     map_center += sf.Vector2(0, 1)
-                            #     tile_map.update(level, map_center)
-                            # elif event.code == sf.Keyboard.S:
-                            #     map_center += sf.Vector2(0, -1)
-                            #     tile_map.update(level, map_center)
-                            # elif event.code == sf.Keyboard.A:
-                            #     map_center += sf.Vector2(-1, 0)
-                            #     tile_map.update(level, map_center)
-                            # elif event.code == sf.Keyboard.D:
-                            #     map_center += sf.Vector2(1, 0)
-                            #     tile_map.update(level, map_center)
-                            # elif event.code == sf.Keyboard.R:
-                            #     tile_map.update(level, map_center)
+                    message_bus.emit('sf.'+type(event).__name__, event, source='engine.main_window')
 
                 window.clear()  # clear screen
 
-                scene_graph.update()
-                scene_graph.display(window)
+                # scene_graph.update()
+                # scene_graph.display(window)
 
                 window.display()  # update the window
-
-        except Exception as e:
-            from traceback import print_tb
+        except:
+            from traceback import print_exc
 
             print("=== Exception Occured ===")
-            print_tb(e.__traceback__)
+            print_exc()

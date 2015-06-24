@@ -4,12 +4,12 @@
     {
       "name": "money",
       "texture": "Money.png",
-      "size": "16x16"
+      "map": null
     },
     {
       "name": "tools",
       "texture": "Tool.png",
-      "size": "16x16"
+      "map": null
     }
   ]
 }
