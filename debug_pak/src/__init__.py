@@ -19,9 +19,9 @@ class Bootstrap(object):
     def __init__(self):
         pass
 
-    @MessageBus.Listen(event='sf.KeyEvent')
+    @MessageBus.Listen(event='term.event')
     def on_key(self, event, source):
-        logger.debug("Event Fired")
+        logger.debug("Event Fired: %s" % event)
 
     def init(self):
         logger.info("Boostrap of %s", type(self))

@@ -24,6 +24,7 @@ class GameBootstrap(object):
                 base_package = meta['base_package']
                 for loader in loaders:
                     module_name, class_name = (base_package + '.' + loader).rsplit('.', 1)
+                    logger.debug("Importing %s", module_name)
                     module = importlib.import_module(module_name)
                     loader_class = getattr(module, class_name)
                     loader_instance = loader_class()
@@ -96,74 +97,20 @@ class Game(object):
         # scene_graph = Service.get('engine.scene_graph')
         message_bus = Service.get('engine.message_bus')
 
-        from sfml import sf
-
-        """
-        print("Loading World ...")
-
-        save_file = SaveFile(self.args.world, 0)
-        save_file.open()
-
-        if self.args.rebuild:
-            save_file.clear(self.args.rebuild)
-
-        save_file.load()
-
-        world = save_file.world
-        region = world.region("Hub Town")
-        level = region.level("Ground")
-
-        if self.args.rebuild is not None:
-            registry = Container.instance().get('engine.block_registry')
-            print("Building World ...")
-            p2 = sf.Vector2(level.size.x // 2, level.size.y // 2) * Chunk.size
-            p1 = -p2
-            all_pos = (sf.Vector2(x, y)
-                       for (x, y)
-                       in itertools.product(range(p1.x, p2.x), range(p1.y, p2.y)))
-
-            for pos in all_pos:
-                block = registry.get('block.floor')
-                if pos.x % 4 == 0:
-                    block = registry.get('block.wall')
-                elif pos.y % 4 == 0:
-                    block = registry.get('block.wall')
-
-                level.set_block(pos, block)
-
-            print("Saving ...")
-            save_file.save()
-            print("Done!")
-        """
         try:
-            # create the main window
-            width, height = map(int, self.args.video_mode.split(':'))
-            window = sf.RenderWindow(sf.VideoMode(width, height), "pySFML Window")
-            # window.setVerticalSyncEnabled(True)
-            # window.setFramerateLimit(30)
+            from bearlibterminal import terminal
 
-            # tile_map = TileMap(size=sf.Vector2(9, 9),
-            #                    atlas=tile_atlas)
-            # map_center = sf.Vector2(0, 0)
-            # tile_map.update(level, map_center)
-            # tile_map.transform.scale(sf.Vector2(2, 2))
+            terminal.open()
+            terminal.printf(2, 2, "Test!")
+            terminal.refresh()
 
-            # start the game loop
-            while window.is_open:
-                # process events
-                for event in window.events:
-                    # close window: exit
-                    if type(event) is sf.CloseEvent:
-                        window.close()
+            event = terminal.read()
+            while event != terminal.TK_CLOSE:
+                message_bus.emit('term.event', event, source='engine.main_window')
+                terminal.refresh()
+                event = terminal.read()
 
-                    message_bus.emit('sf.'+type(event).__name__, event, source='engine.main_window')
-
-                window.clear()  # clear screen
-
-                # scene_graph.update()
-                # scene_graph.display(window)
-
-                window.display()  # update the window
+            terminal.close()
         except:
             from traceback import print_exc
 

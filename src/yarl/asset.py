@@ -1,5 +1,5 @@
 import tarfile as tar
-from sfml import sf
+# from sfml import sf
 from os.path import basename
 from yarl.service import Inject
 

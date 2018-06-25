@@ -1,0 +1,4 @@
+bearlibterminal==0.15.7
+Cython==0.28.3
+numpy==1.14.5
+websockets==5.0.1

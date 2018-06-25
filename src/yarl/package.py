@@ -1,3 +1,4 @@
+import re
 from zipfile import ZipFile
 from yarl.util import base_dir, partial
 import json
@@ -5,7 +6,8 @@ import glob
 from collections import namedtuple
 import os
 from os.path import join, isdir, basename, realpath, relpath
-from importlib.util import module_for_loader
+from importlib.abc import *
+from importlib.machinery import ModuleSpec
 import logging
 
 logger = logging.getLogger(__name__)
@@ -115,7 +117,7 @@ class ResourcesManifest(BaseManifest):
     def resources(self):
         for pattern in self.glob:
             for file in glob.glob(join(self.base, pattern)):
-                name = join(self.path, relpath(file, self.base))
+                name = re.sub(r'[\\/]+', '/', join(self.path, relpath(file, self.base)))
                 yield (name, file)
 
     def index(self, index):
@@ -227,6 +229,9 @@ class BasePackage(object):
     def contains(self, name, kind):
         return self.index.has_item(kind, name)
 
+    def get(self, name, kind):
+        return self.index.get_item(kind, name)
+
     def read(self, name, kind):
         """
         Reads the requested key from the package
@@ -304,10 +309,13 @@ class PackageLoader(object):
         sys.meta_path.append(self.class_loader)
 
 
-class PackagedClassLoader(object):
+class PackagedClassLoader(MetaPathFinder, ExecutionLoader):
     """
     Implements PEP 302 class loading protocol
     """
+
+    def module_repr(self, module):
+        return "<module:%s>" % module.name
 
     def __init__(self, loader):
         self.loader = loader
@@ -321,30 +329,29 @@ class PackagedClassLoader(object):
             for module in package.index.modules:
                 self.modules[module] = package
 
-    def find_module(self, name, path=None):
-        logger.debug("Lookup for %s (path=%s)" % (name, path))
-        if name in self.modules:
-            return self
+    def find_spec(self, fullname, path, target=None):
+        logger.debug("Lookup for %s (path=%s, target=%s)" % (fullname, path, target))
+        if fullname in self.modules:
+            return ModuleSpec(fullname, self, is_package=self.is_package(fullname))
         else:
             return None
 
-    def get_package(self, fullname):
-        return self.modules[fullname]
-
-    @module_for_loader
-    def load_module(self, module):
-        fullname = module.__name__
+    def get_source(self, fullname):
         package = self.get_package(fullname)
         source, meta = package.read(fullname, PackageIndex.MODULE)
+        return source
 
-        module.__file__ = "<%s:%s>" % (package.location, fullname)
-        module.__loader__ = self
+    def get_filename(self, fullname):
+        package = self.get_package(fullname)
+        return "<%s:%s>" % (package.location, fullname)
 
-        if meta['is_package']:
-            module.__path__ = []
-            module.__package__ = fullname
-        else:
-            module.__package__ = fullname.rpartition('.')[0]
+    def is_package(self, fullname):
+        package = self.get_package(fullname)
+        filename, meta = package.get(fullname, PackageIndex.MODULE)
 
-        exec(source, module.__dict__)
-        return module
+        is_package = meta.get('is_package', False)
+
+        return is_package
+
+    def get_package(self, fullname):
+        return self.modules[fullname]

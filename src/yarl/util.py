@@ -1,5 +1,5 @@
 import re
-from sfml import sf
+# from sfml import sf
 from os.path import dirname, realpath
 import hashlib
 

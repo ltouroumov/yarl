@@ -33,19 +33,24 @@ class ConsoleHandler(Handler):
 class PackagedRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         logger.info("Getting %s", self.path)
-        self.send_header("Content-Type", "text/html")
 
         if self.path == '/':
             resource_name = 'web/console.html'
         else:
             resource_name = 'web' + self.path
 
+        logger.debug("Resource: %s", resource_name)
         if package.contains(resource_name, PackageIndex.RESOURCE):
+            logger.debug("Sending resource")
             handle, meta = package.read(resource_name, PackageIndex.RESOURCE)
-            self.wfile.write(handle)
             self.send_response(200, "OK")
+            self.end_headers()
+            self.wfile.write(handle)
         else:
+            logger.debug("Resource not found")
             self.send_error(404, "Resource Not Found")
+
+        logger.debug("GET DONE")
 
 
 class ConsoleWebInterface(Thread):
@@ -80,7 +85,7 @@ class DebugConsoleServer(Thread):
             if message is None:
                 break
 
-            yield from websocket.send(message)
+            yield from websocket.send("""{"packet_type": "rcon", "payload": "{!r}"}""".format(message))
 
     @asyncio.coroutine
     def repl_handler(self, websocket):
@@ -118,7 +123,7 @@ class DebugConsoleServer(Thread):
                 })
                 yield from websocket.send(response)
 
-            yield from asyncio.sleep(2)
+            yield from asyncio.sleep(0.5)
 
     @asyncio.coroutine
     def handler(self, websocket, path):
@@ -131,7 +136,8 @@ class DebugConsoleServer(Thread):
                 yield from websocket.send("Unkown channel")
 
     def run(self):
-        start_server = websockets.serve(self.handler, 'localhost', 32081)
         asyncio.set_event_loop(self.loop)
+
+        start_server = websockets.serve(self.handler, 'localhost', 32081)
         asyncio.get_event_loop().run_until_complete(start_server)
         asyncio.get_event_loop().run_forever()
