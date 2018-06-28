@@ -1,9 +1,9 @@
 from yarl.asset import AssetLoader
 from yarl.block import BlockRegistry
 from yarl.message import MessageBus
-from yarl.package import PackageLoader
+from yarl.package import PackageLoader, PackageIndex
 from yarl.scene import SceneGraph
-from yarl.util import apply_seq
+from yarl.util import apply_seq, Singleton
 from yarl.service import Container, Service
 import importlib
 import logging
@@ -20,10 +20,10 @@ class GameBootstrap(object):
 
     def load(self):
         for name, package in self.package_loader.packages.items():
-            for _, (loaders, meta) in package.index.loaders.items():
-                base_package = meta['base_package']
+            for _, (loaders, meta) in package.index.get_all(PackageIndex.LOADER):
+                # base_package = meta['base_package']
                 for loader in loaders:
-                    module_name, class_name = (base_package + '.' + loader).rsplit('.', 1)
+                    module_name, class_name = loader.rsplit('.', 1)
                     logger.debug("Importing %s", module_name)
                     module = importlib.import_module(module_name)
                     loader_class = getattr(module, class_name)
@@ -66,7 +66,7 @@ class Game(object):
         root_logger.addHandler(handler)
 
         logger.info("Setting up services")
-        container = Container.instance
+        container = Container.get()
         container.add_instance('engine.default_formatter', formatter)
 
         logger.info("Package Loader")
@@ -75,6 +75,10 @@ class Game(object):
 
         package_loader = PackageLoader(self.args.paks)
         package_loader.load()
+
+        if self.args.debug:
+            package_loader.dump()
+
         package_loader.hook()
 
         container.add_instance('engine.package_loader', package_loader)

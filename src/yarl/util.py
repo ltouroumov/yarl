@@ -103,7 +103,7 @@ class Singleton(object):
     takes only the `self` argument. Other than that, there are
     no restrictions that apply to the decorated class.
 
-    To get the singleton instance, use the `Instance` method. Trying
+    To get the singleton instance, use the `get` method. Trying
     to use `__call__` will result in a `TypeError` being raised.
 
     Limitations: The decorated class cannot be inherited from.
@@ -114,8 +114,7 @@ class Singleton(object):
         self._decorated = decorated
         self._instance = None
 
-    @property
-    def instance(self):
+    def get(self):
         """
         Returns the singleton instance. Upon its first call, it creates a
         new instance of the decorated class and calls its `__init__` method.

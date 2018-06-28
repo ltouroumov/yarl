@@ -1,3 +1,4 @@
+import itertools
 import re
 from zipfile import ZipFile
 from yarl.util import base_dir, partial
@@ -69,12 +70,10 @@ class SourcesManifest(BaseManifest):
     def __init__(self, file):
         super().__init__(file)
         self.root = realpath(join(self.base, self.manifest['root']))
-        self.base_package = self.manifest['base']
+        self.provides = self.manifest['provides']
         self.bootstrap = self.manifest['bootstrap']
 
     def sources(self):
-        base_package = self.base_package.split('.')
-
         def walk_dir(root, subpath=''):
             for node in os.listdir(root):
                 real_path = join(root, node)
@@ -84,17 +83,21 @@ class SourcesManifest(BaseManifest):
                 else:
                     yield (real_path, rel_path)
 
-        for real_path, file in walk_dir(self.root):
-            is_package = '__init__.py' in file
-            file_package = (file[:-12] if is_package else file[:-3]).split(os.sep)
-            package_name = str.join('.', base_package + list(filter(bool, file_package)))
+        for provides in self.provides:
+            base_package = provides.split('.')
+            base_path = join(self.root, *base_package)
+            for real_path, file in walk_dir(base_path):
+                is_package = '__init__.py' in file
+                file_package = (file[:-12] if is_package else file[:-3]).split(os.sep)
+                package_name = str.join('.', map(str, itertools.chain(base_package, filter(bool, file_package))))
 
-            yield (package_name, is_package, real_path)
+                yield (package_name, is_package, real_path)
 
     def index(self, index):
         for name, ispkg, path in self.sources():
             index.add_item(PackageIndex.MODULE, name, path, meta={'is_package': ispkg})
-        index.add_item(PackageIndex.LOADER, self.name, self.bootstrap, meta={'base_package': self.base_package})
+
+        index.add_item(PackageIndex.LOADER, self.name, self.bootstrap)
 
     def build(self, archive):
         for name, ispkg, path in self.sources():
@@ -139,42 +142,47 @@ class PackageIndex(object):
     TILESET = 'tilesets'
     RESOURCE = 'resources'
 
+    CATEGORIES = [LOADER, MODULE, TILESET, RESOURCE]
+
     def __init__(self):
-        self.loaders = dict()
-        self.modules = dict()
-        self.tilesets = dict()
-        self.resources = dict()
+        self.data = {category: dict() for category in self.CATEGORIES}
 
     def add_item(self, kind, name, path, meta=None):
-        pool = getattr(self, kind)
+        pool = self.data[kind]
         if name in pool:
             raise KeyError("Duplicate %s key: %s" % (kind, name))
 
         pool[name] = (path, meta)
 
     def has_item(self, kind, name):
-        return name in getattr(self, kind)
+        return name in self.data[kind]
 
     def get_item(self, kind, name):
-        pool = getattr(self, kind)
+        pool = self.data[kind]
         if name not in pool:
             raise KeyError("Key %s (%s) does not exist" % (name, kind))
 
         return pool[name]
 
+    def get_all(self, kind):
+        for name, data in self.data[kind].items():
+            yield name, data
+
     def load(self, data):
         data = json.loads(data)
-        self.loaders = data['loaders']
-        self.modules = {name: ("src/%s" % name, meta) for name, meta in data['modules'].items()}
-        self.tilesets = {name: ("assets/%s" % name, meta) for name, meta in data['tilesets'].items()}
-        self.resources = {name: (name, meta) for name, meta in data['resources'].items()}
+        self.data = dict(
+            loaders=data['loaders'],
+            modules={name: ("src/%s" % name, meta) for name, meta in data['modules'].items()},
+            tilesets={name: ("assets/%s" % name, meta) for name, meta in data['tilesets'].items()},
+            resources={name: (name, meta) for name, meta in data['resources'].items()},
+        )
 
     @property
     def json(self):
-        return json.dumps({'loaders': {name: info for name, info in self.loaders.items()},
-                           'modules': {name: meta for name, (path, meta) in self.modules.items()},
-                           'tilesets': {name: meta for name, (path, meta) in self.tilesets.items()},
-                           'resources': {name: meta for name, (path, meta) in self.resources.items()}})
+        return json.dumps({'loaders': {name: info for name, info in self.data['loaders'].items()},
+                           'modules': {name: meta for name, (path, meta) in self.data['modules'].items()},
+                           'tilesets': {name: meta for name, (path, meta) in self.data['tilesets'].items()},
+                           'resources': {name: meta for name, (path, meta) in self.data['resources'].items()}})
 
 
 class PackageManifest(BaseManifest):
@@ -295,10 +303,20 @@ class PackageLoader(object):
 
             package.load()
             self.packages[name] = package
+
         self.class_loader.build()
 
     def get_from_module(self, name):
         return self.class_loader.get_package(name)
+
+    def dump(self):
+        logger.debug("PackageLoader dump")
+        for name, pkg in self.packages.items():
+            logger.debug("  Package %s (%s)", name, type(pkg).__name__)
+            for cat in PackageIndex.CATEGORIES:
+                logger.debug("    = %s =", cat)
+                for entry, (data, meta) in pkg.index.get_all(cat):
+                    logger.debug("    - %s: %s %s", entry, data, repr(meta))
 
     def hook(self):
         """
@@ -326,11 +344,11 @@ class PackagedClassLoader(MetaPathFinder, ExecutionLoader):
         Build the package index to allow for fast lookup
         """
         for pkname, package in self.loader.packages.items():
-            for module in package.index.modules:
+            for module, _ in package.index.get_all(PackageIndex.MODULE):
                 self.modules[module] = package
 
     def find_spec(self, fullname, path, target=None):
-        logger.debug("Lookup for %s (path=%s, target=%s)" % (fullname, path, target))
+        logger.debug("Lookup for %s", fullname)
         if fullname in self.modules:
             return ModuleSpec(fullname, self, is_package=self.is_package(fullname))
         else:

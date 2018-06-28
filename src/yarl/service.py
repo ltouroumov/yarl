@@ -22,7 +22,7 @@ class Container(object):
 
         self.instances[name] = instance
 
-    def get(self, name):
+    def service(self, name):
         if name not in self.instances:
             try:
                 self.load(name)
@@ -42,7 +42,7 @@ class Container(object):
 class Service(object):
     @staticmethod
     def get(name):
-        return Container.instance.get(name)
+        return Container.get().service(name)
 
     def __init__(self, name):
         self.name = name
@@ -50,8 +50,8 @@ class Service(object):
 
     def __get__(self, instance, owner):
         if self.cache is None:
-            container = Container.instance
-            self.cache = container.get(self.name)
+            container = Container.get()
+            self.cache = container.service(self.name)
 
         return self.cache
 
@@ -76,8 +76,8 @@ class Injector(object):
         self.services = services
 
     def __call__(self, *args, **kwargs):
-        locator = Container.instance()
-        kwargs.update({attr: locator.get(name) for attr, name in self.services.items()})
+        locator = Container.get()
+        kwargs.update({attr: locator.service(name) for attr, name in self.services.items()})
         return self.decorated(*args, **kwargs)
 
     def __instancecheck__(self, inst):

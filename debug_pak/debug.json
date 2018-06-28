@@ -1,5 +1,5 @@
 {
   "root": "src",
-  "base": "yarl.debug",
-  "bootstrap": ["Bootstrap"]
+  "provides": ["yarl.debug"],
+  "bootstrap": ["yarl.debug.Bootstrap"]
 }

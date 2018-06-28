@@ -15,8 +15,8 @@ def main():
     terminal.set("0xE000: res/meph_32x32.png, size=32x32, align=top-left")
     terminal.set("0xE100: res/meph_trees.png, size=32x32, align=top-left")
 
-    tx = 1
-    ty = 5
+    tx = 0
+    ty = 4
     page = 0xE000
 
     draw_page(tx, ty, page)
@@ -28,23 +28,23 @@ def main():
         terminal.clear()
 
         if event == terminal.TK_MOUSE_MOVE:
-            mx = terminal.state(terminal.TK_MOUSE_X) + 1
-            my = terminal.state(terminal.TK_MOUSE_Y) + 1
+            mx = terminal.state(terminal.TK_MOUSE_X)
+            my = terminal.state(terminal.TK_MOUSE_Y)
 
-            terminal.printf(15, 1, "mx: {}, my: {}", mx, my)
+            terminal.printf(15, 0, "mx: {}, my: {}", mx, my)
 
             if mx >= tx and my >= ty:
-                tid = page + (mx - tx) // 4 + ((my - ty) // 2) * 16
-                terminal.printf(1, 4, "tile: {:04x}", tid)
+                tid = page + (mx - tx) // 2 + (my - ty) * 16
+                terminal.printf(0, 3, "tile: {:04x}", tid)
             else:
-                terminal.printf(1, 4, "tile: XXXX")
+                terminal.printf(0, 3, "tile: XXXX")
         elif event == terminal.TK_UP:
             page += 0x0100
         elif event == terminal.TK_DOWN:
             page -= 0x0100
 
-        terminal.printf(1, 1, "event: {}", event)
-        terminal.printf(1, 3, "page: {:x}", page)
+        terminal.printf(0, 0, "event: {}", event)
+        terminal.printf(0, 2, "page: {:x}", page)
 
         draw_page(tx, ty, page)
 

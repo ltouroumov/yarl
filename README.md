@@ -4,14 +4,14 @@ My now 5th attempt at making a game. Giving Python a go this time. C++ can go to
 
 ## Can I play this thing?
 
-You can try. You will need:
+You can try.
 
-* Python Runtime 3.3
-* pySFML (1.3)
-* cython (0.19)
-* numpy
+For now, you will need to run the system in debug mode
 
-And lots of patience!
+```
+pip install -r requirements.txt
+python src/main.py --debug --no-core --load core_pak/manifest.json debug_pak/manifest.json
+```
 
 ## What is the license for the art?
 

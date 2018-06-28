@@ -61,3 +61,4 @@ target/
 game
 *.tar.gz
 .idea/
+venv

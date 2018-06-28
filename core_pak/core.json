@@ -1,5 +1,5 @@
 {
   "root": "src",
-  "base": "yarl.core",
-  "bootstrap": ["Bootstrap"]
+  "provides": ["yarl.core"],
+  "bootstrap": ["yarl.core.Bootstrap"]
 }
